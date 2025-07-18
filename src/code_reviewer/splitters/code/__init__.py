@@ -1,5 +1,5 @@
 __all__ = (
-    "CodeEnrichmentSplitter",
+    "CodeEnrichmentTextSplitter",
 )
 
-from .splitter import CodeEnrichmentSplitter
+from .splitter import CodeEnrichmentTextSplitter

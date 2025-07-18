@@ -13,7 +13,7 @@ from .constants import LANGUAGE2SEPARATORS, ENRICHED_CHUNK_TEMPLATE
 from .prompts import SUMMARIZER_PROMPT
 
 
-class CodeEnrichmentSplitter(TextSplitter):
+class CodeEnrichmentTextSplitter(TextSplitter):
     def __init__(
             self,
             language: ProgramingLanguage,
