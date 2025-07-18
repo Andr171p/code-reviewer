@@ -1,3 +1,0 @@
-
-SUMMARIZER_PROMPT = """
-"""

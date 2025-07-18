@@ -7,7 +7,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 from langchain_text_splitters import TextSplitter, RecursiveCharacterTextSplitter
 
-from ..core.enums import ProgramingLanguage
+from ...core.enums import ProgramingLanguage
 
 from .constants import LANGUAGE2SEPARATORS, ENRICHED_CHUNK_TEMPLATE
 from .prompts import SUMMARIZER_PROMPT

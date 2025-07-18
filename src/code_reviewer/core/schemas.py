@@ -9,7 +9,6 @@ from pydantic import BaseModel
 class User(BaseModel):
     id: UUID
     username: str
-    role: ...
     created_at: datetime
     
     
@@ -46,6 +45,7 @@ class CodeArtifact(BaseModel):
     name: str
     path: str
     content: str
+    language: ...
     
     
 class Finding(BaseModel):
