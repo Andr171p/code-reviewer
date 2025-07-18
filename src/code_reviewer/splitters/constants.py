@@ -8,8 +8,8 @@ LANGUAGE2SEPARATORS: dict[ProgramingLanguage: list[str]] = {
     ProgramingLanguage.CPP: CPP_SEPARATORS  # noqa: F405
 }
 
-CHUNK = """Файл: {filename}
-Код: {code}
+ENRICHED_CHUNK_TEMPLATE = """Файл: {filename}
+Код: {content}
 Описание: {description}
 Язык программирования: {language}
 """
