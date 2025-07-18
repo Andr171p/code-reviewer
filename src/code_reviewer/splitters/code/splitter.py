@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import Optional
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -53,9 +54,9 @@ class CodeEnrichmentTextSplitter(TextSplitter):
         ]
         return enriched_chunks
 
-    def _get_code_description(
+    def _get_content_description(
         self, content: str, metadata: Optional[dict[str, str]] = None
-        ) -> str:
+    ) -> str:
         """_summary_
 
         Args:
