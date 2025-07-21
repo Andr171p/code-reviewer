@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class ProgramingLanguage(StrEnum):
+class Language(StrEnum):
     """Enum of the programming languages."""
     CPP = "cpp"
     GO = "go"
@@ -30,4 +30,4 @@ class ProgramingLanguage(StrEnum):
     ELIXIR = "elixir"
     POWERSHELL = "powershell"
     VISUALBASIC6 = "visualbasic6"
-    ONEC = "1c"
+    ONEC = "bsl"

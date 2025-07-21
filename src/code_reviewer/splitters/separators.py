@@ -1,5 +1,5 @@
 
-ONEC_SEPARATORS: list[str] = [
+BSL_SEPARATORS: list[str] = [
     # Разделение по началу процедур/функций
     "\nПроцедура ",
     "\nФункция ",
@@ -21,27 +21,6 @@ ONEC_SEPARATORS: list[str] = [
     # Разделение по комментариям
     "\n//",
     # Стандартные разделители
-    "\n\n",
-    "\n",
-    " ",
-    "",
-]
-
-CPP_SEPARATORS: list[str] = [
-    # Split along class definitions
-    "\nclass ",
-    # Split along function definitions
-    "\nvoid ",
-    "\nint ",
-    "\nfloat ",
-    "\ndouble ",
-    # Split along control flow statements
-    "\nif ",
-    "\nfor ",
-    "\nwhile ",
-    "\nswitch ",
-    "\ncase ",
-    # Split by the normal type of lines
     "\n\n",
     "\n",
     " ",

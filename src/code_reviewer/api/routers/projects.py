@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, UploadFile, File
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka as Depends
 
@@ -12,10 +12,10 @@ projects_router = APIRouter(
 
 
 @projects_router.post(
-    path="",
+    path="/upload",
     status_code=status.HTTP_201_CREATED,
     response_model=...,
     summary=""
 )
-async def create_project(project: Project, repository: Depends[...]) -> ...:
-    ...
+async def upload_file(file: UploadFile = File(...)) -> ...:
+    content = await file.read()
