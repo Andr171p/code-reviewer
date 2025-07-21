@@ -1,13 +1,14 @@
 import os
 import logging
+import xmltodict
 
 from dotenv import load_dotenv
+from aspose.cells import Workbook, SaveFormat
 from langchain_gigachat import GigaChat
-from langchain_core.documents import Document
 
 from src.code_reviewer.core.enums import Language
-from src.code_reviewer.utils.converters import convert_language2text
 from src.code_reviewer.splitters.code_splitter import CodeSplitter
+from xml_content import content
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,12 +31,7 @@ splitter = CodeSplitter(
     llm=llm
 )
 
+# docs = splitter.split_documents([Document(page_content=md_text)])
 
-with open("Module.bsl", "rb") as file:
-    md_text = convert_language2text(file.read(), language=Language.ONEC)
-
-
-docs = splitter.split_documents([Document(page_content=md_text)])
-
-for doc in docs:
-    print(doc)
+with open("Информация.xml", encoding="utf-8") as file:
+    print(xmltodict.parse(file.read()))

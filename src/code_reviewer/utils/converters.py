@@ -5,9 +5,9 @@ from markitdown import MarkItDown
 from ..core.enums import Language
 
 
-def convert2md(file: bytes) -> str:
+def convert2md(data: bytes) -> str:
     markitdown = MarkItDown()
-    result = markitdown.convert(BytesIO(file))
+    result = markitdown.convert(BytesIO(data))
     return result.text_content
 
 

@@ -1,6 +1,5 @@
-from .separators import BSL_SEPARATORS
-
 from ..core.enums import Language
+from .separators import BSL_SEPARATORS
 
 MIN_CHUNK_LENGTH = 15
 
