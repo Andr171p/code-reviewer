@@ -1,5 +1,6 @@
 from typing import Generic, TypeVar
 
+from abc import ABC, abstractmethod
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -15,3 +16,8 @@ class CRUDRepository(Generic[T]):
     async def update(self, id: UUID, **kwargs) -> T | None: pass
 
     async def delete(self, id: UUID) -> bool: pass
+
+
+class VectorStoreRetriever(ABC):
+    @abstractmethod
+    async def similarity_search(self, query: str) -> list[dict[str, str]]: pass

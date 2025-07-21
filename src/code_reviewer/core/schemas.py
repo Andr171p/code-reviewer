@@ -11,6 +11,14 @@ from .enums import ModuleType, MetadataType
 from ..utils.converters import convert2md
 
 
+class User(BaseModel):
+    id: UUID = Field(default_factory=uuid4)
+    username: str
+    role: ...
+    created_at: datetime
+    updated_at: datetime
+
+
 class Project(BaseModel):
     id: UUID = Field(default_factory=uuid4)  # Unique ID in UUID format
     name: str                                # Name of project
