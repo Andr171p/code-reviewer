@@ -15,6 +15,7 @@ dependencies = [
     "networkx>=3.5",
     "spacy>=3.8.7",
     "sqlalchemy>=2.0.41",
+    "transformers>=4.53.2",
     "weaviate-client>=4.16.1",
     "xmltodict>=0.14.2",
 ]

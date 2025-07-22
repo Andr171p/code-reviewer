@@ -1,37 +1,20 @@
-import os
-import logging
-import xmltodict
+from langchain_core.documents import Document
 
-from dotenv import load_dotenv
-from aspose.cells import Workbook, SaveFormat
-from langchain_gigachat import GigaChat
+from src.code_reviewer.splitters import BSLCodeSplitter
 
-from src.code_reviewer.core.enums import Language
-from src.code_reviewer.splitters.code_splitter import CodeSplitter
-from xml_content import content
-
-logging.basicConfig(level=logging.INFO)
-
-load_dotenv(".env")
-
-llm = GigaChat(
-    credentials=os.getenv("GIGACHAT_API_KEY"),
-    scope=os.getenv("GIGACHAT_SCOPE"),
-    model=os.getenv("GIGACHAT_MODEL"),
-    profanity_check=False,
-    verify_ssl_certs=False,
-)
-
-splitter = CodeSplitter(
-    chunk_size=1000,
+splitter = BSLCodeSplitter(
+    chunk_size=500,
     chunk_overlap=20,
     length_function=len,
-    language=Language.ONEC,
-    enrich_chunks=True,
-    llm=llm
+    enrich_chunks=False
 )
 
-# docs = splitter.split_documents([Document(page_content=md_text)])
+with open("Module.bsl", encoding="utf-8") as file:
+    content = file.read()
 
-with open("Информация.xml", encoding="utf-8") as file:
-    print(xmltodict.parse(file.read()))
+
+docs = splitter.split_documents([Document(page_content=content)])
+
+for doc in docs:
+    print("=" * 75)
+    print(doc)

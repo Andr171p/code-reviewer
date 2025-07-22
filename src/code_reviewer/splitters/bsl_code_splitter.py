@@ -1,40 +1,41 @@
+import json
+
 from langchain_core.language_models import BaseChatModel
 from langchain_text_splitters import RecursiveCharacterTextSplitter, TextSplitter
 from pydantic import BaseModel, Field
 
-from ..core.enums import Language
 from ..utils.ai import create_llm_chain_with_structured_output
-from .constants import LANGUAGE2SEPARATORS, MIN_CHUNK_LENGTH
+from .separators import BSL_SEPARATORS
 from .prompts import ENRICHER_PROMPT
 
 
-class CodeSplitter(TextSplitter):
+class BSLCodeSplitter(TextSplitter):
     def __init__(
             self,
-            language: Language,
             enrich_chunks: bool = False,
             llm: BaseChatModel | None = None,
             additional_context: str = "",
+            chunk_json_schema: BaseModel | None = None,
             **kwargs
     ) -> None:
         super().__init__(**kwargs)
-        self._language = language
         self._recursive_splitter = RecursiveCharacterTextSplitter(
             chunk_size=self._chunk_size,
             chunk_overlap=self._chunk_overlap,
             length_function=self._length_function,
-            separators=LANGUAGE2SEPARATORS.get(self._language)
+            separators=BSL_SEPARATORS
         )
         self._enrich_chunks = enrich_chunks
         self._llm = llm
         self._additional_context = additional_context
+        self._chunk_json_schema = chunk_json_schema
 
     def split_text(self, text: str) -> list[str]:
         chunks = self._recursive_splitter.split_text(text)
         if self._enrich_chunks:
             enriched_chunks: list[str] = []
             for chunk in chunks:
-                if len(chunk) > MIN_CHUNK_LENGTH:
+                if len(chunk) > ...:
                     enriched_chunk = self._enrich_context(chunk)
                     enriched_chunks.append(enriched_chunk)
                 else:
@@ -56,10 +57,10 @@ class CodeSplitter(TextSplitter):
             llm=self._llm,
             additional_context=self._additional_context
         )
-        enrichment = llm_chain.invoke({"language": self._language, "text": text})
+        enrichment = llm_chain.invoke({"text": text})
         return f"""**Код**:
         
-        ```{self._language}
+        ```bsl
         {text}
         ```
         
