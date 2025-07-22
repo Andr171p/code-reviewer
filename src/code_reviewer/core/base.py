@@ -16,8 +16,3 @@ class CRUDRepository(Generic[T]):
     async def update(self, id: UUID, **kwargs) -> T | None: pass
 
     async def delete(self, id: UUID) -> bool: pass
-
-
-class BaseRetriever(ABC):
-    @abstractmethod
-    async def similarity_search(self, query: str, limit: int) -> list[dict[str, str]]: pass
