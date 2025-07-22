@@ -5,7 +5,7 @@ from typing import Any
 from uuid import UUID, uuid4
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 from .enums import ModuleType, MetadataType
 from ..utils.converters import convert2md
@@ -26,6 +26,8 @@ class Project(BaseModel):
     description: str                         # Description of project
     created_at: datetime | None = None       # Date of creation
     updated_at: datetime | None = None       # Date of update
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Documentation(BaseModel):

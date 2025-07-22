@@ -9,7 +9,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class CRUDRepository(Generic[T]):
-    async def create(self, model: T) -> None: pass
+    async def create(self, model: T) -> T: pass
 
     async def read(self, id: UUID) -> T | None: pass
 

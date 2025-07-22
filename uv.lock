@@ -272,6 +272,7 @@ dependencies = [
     { name = "mypy" },
     { name = "networkx" },
     { name = "spacy" },
+    { name = "sqlalchemy" },
     { name = "weaviate-client" },
     { name = "xmltodict" },
 ]
@@ -288,6 +289,7 @@ requires-dist = [
     { name = "mypy", specifier = ">=1.17.0" },
     { name = "networkx", specifier = ">=3.5" },
     { name = "spacy", specifier = ">=3.8.7" },
+    { name = "sqlalchemy", specifier = ">=2.0.41" },
     { name = "weaviate-client", specifier = ">=4.16.1" },
     { name = "xmltodict", specifier = ">=0.14.2" },
 ]
