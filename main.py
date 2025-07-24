@@ -1,20 +1,23 @@
+import pymupdf4llm
+
 from langchain_core.documents import Document
+from langchain_text_splitters import MarkdownHeaderTextSplitter
 
-from src.code_reviewer.splitters import BSLCodeSplitter
 
-splitter = BSLCodeSplitter(
-    chunk_size=500,
-    chunk_overlap=20,
-    length_function=len,
-    enrich_chunks=False
+splitter = MarkdownHeaderTextSplitter(
+    headers_to_split_on=[
+        ("*", "h1"), ("**", "h2"), ("***", "h3")
+    ],
+    strip_headers=False
 )
 
-with open("Module.bsl", encoding="utf-8") as file:
-    content = file.read()
+pdf_path = r"C:\Users\andre\CodeReviewer\Радченко_М_Г_,_Хрусталева_Е_Ю_1С_Предприятие_8_3_Практическое_пособие.pdf"
 
+md_text = pymupdf4llm.to_markdown(pdf_path)
 
-docs = splitter.split_documents([Document(page_content=content)])
+print(md_text)
 
-for doc in docs:
-    print("=" * 75)
-    print(doc)
+docs = splitter.split_text(md_text)
+
+print(len(docs))
+print(docs[5:])
