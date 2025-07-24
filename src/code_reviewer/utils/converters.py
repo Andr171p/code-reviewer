@@ -2,8 +2,6 @@ from io import BytesIO
 
 from markitdown import MarkItDown
 
-from ..core.enums import Language
-
 
 def convert2md(data: bytes) -> str:
     markitdown = MarkItDown()
@@ -11,6 +9,6 @@ def convert2md(data: bytes) -> str:
     return result.text_content
 
 
-def convert_language2text(file: bytes, language: Language) -> str:
+def convert_language2text(file: bytes) -> str:
     content = file.decode("utf-8")
     return content
