@@ -1,8 +1,10 @@
-from typing import TypedDict
+from typing import Annotated, TypedDict
+from collections.abc import Sequence
+
+from langchain_core.messages import BaseMessage
+
+from langgraph.graph.message import add_messages
 
 
-class CodeReview(TypedDict):
-    user_code: str
-    answers: list[str]
-    reasons: str
-    response: str
+class AgentState(TypedDict):
+    messages: Annotated[Sequence[BaseMessage], add_messages]
