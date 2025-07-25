@@ -14,7 +14,6 @@ def create_llm_chain_with_structured_output[T](
     output_schema: type[T],
     llm: BaseChatModel,
     prompt_template: str,
-    additional_context: str = ""
 ) -> Runnable[dict[str, str], T]:
     """Creating chain of callings with structured pydantic output.
 
@@ -22,7 +21,6 @@ def create_llm_chain_with_structured_output[T](
         output_schema (type[T]): Type of excepted chain output pydantic schema.
         llm (BaseChatModel): LLM for calling.
         prompt_template (str): Prompt template with instructions for LLM, required `format_instructions` value.
-        additional_context (str): Additional data for prompt injection.
 
     Returns:
         Runnable[dict[str, str], T]: Built chain.
@@ -32,7 +30,6 @@ def create_llm_chain_with_structured_output[T](
         ChatPromptTemplate.from_messages([("system", prompt_template)])
         .partial(
             format_instructions=parser.get_format_instructions(),
-            additional_context=additional_context
         )
     )
     return prompt | llm | parser

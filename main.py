@@ -1,42 +1,77 @@
-import pymupdf4llm
+import weaviate
+from llama_index.readers.file import PyMuPDFReader
+from llama_index.core.node_parser import LangchainNodeParser
+from llama_index.vector_stores.weaviate import WeaviateVectorStore
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from llama_index.core import Document
-from llama_index.core.node_parser import MarkdownNodeParser, LangchainNodeParser
-from langchain_text_splitters import RecursiveCharacterTextSplitter, MarkdownHeaderTextSplitter
-
-headers_to_split_on = [
-    ("#", "Header 1"),
-    ("##", "Header 2"),
-    ("###", "Header 3"),
-]
-markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on)
-
-md_parser = MarkdownNodeParser(include_metadata=True, include_prev_next_rel=True)
-
-pdf_path = r"Радченко_М_Г_,_Хрусталева_Е_Ю_1С_Предприятие_8_3_Практическое_пособие.pdf"
-
-md_text = pymupdf4llm.to_markdown(pdf_path)
-
-# md_nodes = md_parser.get_nodes_from_documents([Document(text=md_text)])
-
-md_nodes = markdown_splitter.split_text(md_text)
-
-recursive_parser = LangchainNodeParser(
-    RecursiveCharacterTextSplitter(
-        chunk_size=600,
-        chunk_overlap=20,
-        length_function=len
-    )
+PDF_PATH = (
+    r"C:\Users\andre\CodeReviewer\assets\docs\Руководство-пользователя-83.004.04.pdf"
 )
 
-all_nodes = ...
+embeddings = HuggingFaceEmbedding(
+    model_name="deepvk/USER-bge-m3", device="cpu"
+)
 
-print(len(md_nodes))
-'''
-k = 0
-for md_node in md_nodes:
-    print(md_node)
-    k += 1
-    if k == 7:
-        break
-'''
+reader = PyMuPDFReader()
+
+documents = reader.load(PDF_PATH)
+
+for document in documents:
+    document.metadata["filename"] = document.metadata["file_path"].split("\\")[-1]
+
+node_parser = LangchainNodeParser(RecursiveCharacterTextSplitter(
+    chunk_size=1024,
+    chunk_overlap=20,
+    length_function=len
+))
+
+nodes = node_parser.get_nodes_from_documents(documents)
+
+client = weaviate.connect_to_custom(
+    http_host="",
+    http_port=...,
+    http_secure=False,
+    grpc_host="",
+    grpc_port=...,
+    grpc_secure=False
+)
+
+client.is_ready()
+
+'''objects = [
+    {
+        "source": node.metadata.get("filename"),
+        "content": node.text,
+        "page": int(node.metadata.get("source")),
+        "total_pages": int(node.metadata.get("total_pages"))
+    }
+    for node in nodes
+]
+
+documentations = client.collections.get("Documentations")
+
+with documentations.batch.fixed_size(batch_size=100) as batch:
+    for object in objects:
+        embedding = embeddings.get_text_embedding(object["content"])
+        batch.add_object(
+            properties=object,
+            uuid=None,
+            vector=embedding
+        )'''
+
+
+query = "Какие лучшие практики создания метаданных?"
+
+vector = embeddings.get_text_embedding(query)
+
+documentations = client.collections.get("Documentations")
+
+response = documentations.query.near_vector(vector)
+
+print(response)
+
+for object in response.objects:
+    print(object.properties["content"])
+
+client.close()

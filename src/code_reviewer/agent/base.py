@@ -1,8 +1,8 @@
-from typing import TypedDict
+from typing import Any
 
 from abc import ABC, abstractmethod
 
 
 class BaseNode(ABC):
     @abstractmethod
-    async def __call__(self, state: TypedDict) -> TypedDict: pass
+    async def __call__(self, state: dict[str, Any]) -> dict[str, Any]: pass

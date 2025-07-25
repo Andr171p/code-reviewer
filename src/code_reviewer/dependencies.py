@@ -1,23 +1,42 @@
-import pymupdf4llm
+import logging
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import GithubFileLoader
+from langchain_gigachat import GigaChat
 
-from llama_index.core import Document
-from llama_index.readers.file import PyMuPDFReader
-from llama_index.core.node_parser import LangchainNodeParser
+from src.code_reviewer.splitters.bsl_code_splitter import BSLDocumentContextEnricher
 
-pdf_path = r"C:\Users\andre\CodeReviewer\Руководство-пользователя-83.004.04.pdf"
+logging.basicConfig(level=logging.INFO)
 
-# md_text = pymupdf4llm.to_markdown(pdf_path)
+ACCESS_TOKEN = ""
 
-reader = PyMuPDFReader()
-docs = reader.load(pdf_path)
 
-recursive_node_parser = LangchainNodeParser(RecursiveCharacterTextSplitter(
-    chunk_size=600,
-    chunk_overlap=20,
-    length_function=len,
-))
+loader = GithubFileLoader(
+    repo="1C-Company/dt-demo-configuration",  # the repo name
+    branch="master",  # the branch name
+    access_token=ACCESS_TOKEN,
+    github_api_url="https://api.github.com",
+    file_filter=lambda file_path: file_path.endswith(
+        ".bsl"
+    ),  # load all markdowns files.
+)
 
-nodes = recursive_node_parser.get_nodes_from_documents(docs)
+llm = GigaChat(
+    credentials="",
+    scope="",
+    model="",
+    verify_ssl_certs=False,
+    profanity_check=False
+)
 
+documents = loader.load()
+
+print(len(documents))
+
+documents = documents[:5]
+
+enricher = BSLDocumentContextEnricher(llm=llm)
+
+enriched_documents = enricher.enrich_documents(documents)
+
+for enriched_document in enriched_documents:
+    print(enriched_document)

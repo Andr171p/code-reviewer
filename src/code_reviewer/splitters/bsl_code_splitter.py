@@ -1,70 +1,52 @@
-import json
-
+from langchain_core.documents import Document
 from langchain_core.language_models import BaseChatModel
-from langchain_text_splitters import RecursiveCharacterTextSplitter, TextSplitter
 from pydantic import BaseModel, Field
 
 from ..utils.ai import create_llm_chain_with_structured_output
-from .separators import BSL_SEPARATORS
-from .prompts import ENRICHER_PROMPT
+from ..utils.converters import get_github_repo_name
+from ..prompts import DESCRIPTION_GENERATOR_PROMPT
 
 
-class BSLCodeSplitter(TextSplitter):
-    def __init__(
-            self,
-            enrich_chunks: bool = False,
-            llm: BaseChatModel | None = None,
-            additional_context: str = "",
-            chunk_json_schema: BaseModel | None = None,
-            **kwargs
-    ) -> None:
-        super().__init__(**kwargs)
-        self._recursive_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self._chunk_size,
-            chunk_overlap=self._chunk_overlap,
-            length_function=self._length_function,
-            separators=BSL_SEPARATORS
-        )
-        self._enrich_chunks = enrich_chunks
-        self._llm = llm
-        self._additional_context = additional_context
-        self._chunk_json_schema = chunk_json_schema
+class ModuleDescription(BaseModel):
+    type: str = Field(description="Тип модуля")
+    purpose: str = Field(description="Основное назначение модуля")
+    details: str = Field(default="", description="Дополнительные детали")
 
-    def split_text(self, text: str) -> list[str]:
-        chunks = self._recursive_splitter.split_text(text)
-        if self._enrich_chunks:
-            enriched_chunks: list[str] = []
-            for chunk in chunks:
-                if len(chunk) > ...:
-                    enriched_chunk = self._enrich_context(chunk)
-                    enriched_chunks.append(enriched_chunk)
-                else:
-                    enriched_chunks.append(chunk)
-            return enriched_chunks
-        return chunks
 
-    def _enrich_context(self, text: str) -> str:
-        class Enrichment(BaseModel):
-            description: str = Field(
-                description="Описание кода (для чего он нужен, какие проблемы решает и.т.д"
-            )
-            tags: str = Field(
-                description="Теги для улучшения поиска по чанку с кодом"
-            )
+class BSLDocumentContextEnricher:
+    def __init__(self, llm: BaseChatModel | None = None) -> None:
+        self.llm = llm
+
+    def enrich_documents(self, documents: list[Document]) -> list[Document]:
+        enriched_documents: list[Document] = []
+        for document in documents:
+            content = document.page_content
+            metadata: dict[str, str] = {
+                "project": get_github_repo_name(document.metadata["source"]),
+                "filename": document.metadata.get("path").split("/")[-1],
+                "path": document.metadata.get("path")
+            }
+            description = self._generate_description(content, metadata)
+            metadata.update({
+                "type": description.type,
+                "purpose": description.purpose,
+                "detail": description.details
+            })
+            enriched_documents.append(Document(page_content=content, metadata=metadata))
+        return enriched_documents
+
+    def _generate_description(
+            self, content: str, metadata: dict[str, str]
+    ) -> ModuleDescription:
         llm_chain = create_llm_chain_with_structured_output(
-            output_schema=Enrichment,
-            prompt_template=ENRICHER_PROMPT,
-            llm=self._llm,
-            additional_context=self._additional_context
+            output_schema=ModuleDescription,
+            prompt_template=DESCRIPTION_GENERATOR_PROMPT,
+            llm=self.llm
         )
-        enrichment = llm_chain.invoke({"text": text})
-        return f"""**Код**:
-        
-        ```bsl
-        {text}
-        ```
-        
-        **Описание**: {enrichment.description}
-        
-        **Тэги**: {enrichment.tags}
-        """
+        description = llm_chain.invoke({
+            "project": metadata.get("project", ""),
+            "filename": metadata.get("filename", ""),
+            "path": metadata.get("path", ""),
+            "content": content
+        })
+        return description
