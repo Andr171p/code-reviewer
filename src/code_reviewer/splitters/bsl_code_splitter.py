@@ -22,6 +22,7 @@ class BSLDocumentContextEnricher:
         for document in documents:
             content = document.page_content
             metadata: dict[str, str] = {
+                "source": document.metadata.get("source"),
                 "project": get_github_repo_name(document.metadata["source"]),
                 "filename": document.metadata.get("path").split("/")[-1],
                 "path": document.metadata.get("path")
