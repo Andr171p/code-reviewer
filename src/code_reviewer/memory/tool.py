@@ -14,7 +14,7 @@ class BaseMemoryTool(BaseTool):
     async_storage: AsyncRedisMemoryStorage | None = None
 
     @classmethod
-    def from_memory_storage(
+    def from_storage(
             cls,
             storage: RedisMemoryStorage | None = None,
             async_storage: AsyncRedisMemoryStorage | None = None

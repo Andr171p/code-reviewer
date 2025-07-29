@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 class RedisMemoryStorage:
     def __init__(
             self,
-            redis_client: Redis,
+            client: Redis,
             schema: IndexSchema,
             vectorizer: BaseVectorizer
     ) -> None:
-        self.redis_client = redis_client
+        self.client = client
         self.schema = schema
         self.vectorizer = vectorizer
 
@@ -32,7 +32,7 @@ class RedisMemoryStorage:
         try:
             memory_index = SearchIndex(
                 schema=self.schema,
-                redis_client=self.redis_client,
+                redis_client=self.client,
                 validate_on_load=True
             )
             memory_index.create(overwrite=False)
@@ -146,11 +146,11 @@ class RedisMemoryStorage:
 class AsyncRedisMemoryStorage:
     def __init__(
             self,
-            redis_client: AsyncRedis,
+            client: AsyncRedis,
             schema: IndexSchema,
             vectorizer: BaseVectorizer
     ) -> None:
-        self.redis_client = redis_client
+        self.client = client
         self.schema = schema
         self.vectorizer = vectorizer
 
@@ -158,11 +158,10 @@ class AsyncRedisMemoryStorage:
         try:
             memory_index = AsyncSearchIndex(
                 schema=self.schema,
-                redis_client=self.redis_client,
+                redis_client=self.client,
                 validate_on_load=True
             )
             await memory_index.create(overwrite=False)
-            await self.redis_client
         except SchemaValidationError as e:
             logger.exception("Error creating schema: %s", str(e))
 

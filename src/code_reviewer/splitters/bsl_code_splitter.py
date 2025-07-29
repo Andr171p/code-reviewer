@@ -2,7 +2,7 @@ from langchain_core.documents import Document
 from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel, Field
 
-from ..utils.ai import create_llm_chain_with_structured_output
+from ..utils.chains import create_llm_chain_with_structured_output
 from ..utils.converters import get_github_repo_name
 from ..prompts import DESCRIPTION_GENERATOR_PROMPT
 

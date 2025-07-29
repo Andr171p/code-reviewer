@@ -18,9 +18,9 @@ class MemoryType(StrEnum):
 
 class Memory(BaseModel):
     """Модель долгосрочной памяти"""
-    content: str             # Основной контент
-    memory_type: MemoryType  # Тип памяти
-    metadata: str            # Метаданные
+    content: str = Field(description="Знания которые нужно сохранить")
+    memory_type: MemoryType = Field(description="Тип памяти")
+    metadata: str = Field(description="Дополнительные метаданные")
 
 
 class StoredMemory(Memory):
