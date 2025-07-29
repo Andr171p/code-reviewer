@@ -378,6 +378,7 @@ dependencies = [
     { name = "langchain" },
     { name = "langchain-community" },
     { name = "langchain-gigachat" },
+    { name = "langchain-redis" },
     { name = "langgraph" },
     { name = "llama-index" },
     { name = "llama-index-embeddings-huggingface" },
@@ -409,6 +410,7 @@ requires-dist = [
     { name = "langchain", specifier = ">=0.3.26" },
     { name = "langchain-community", specifier = ">=0.3.27" },
     { name = "langchain-gigachat", specifier = ">=0.3.11" },
+    { name = "langchain-redis", specifier = ">=0.2.3" },
     { name = "langgraph", specifier = ">=0.5.3" },
     { name = "llama-index", specifier = ">=0.12.52" },
     { name = "llama-index-embeddings-huggingface", specifier = ">=0.5.5" },
@@ -1207,6 +1209,26 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c6/81/715c1936f6c6cb0a40926c48f78d4ec5db84ab8713f12c5868f4c752a6a0/langchain_gigachat-0.3.11.tar.gz", hash = "sha256:591078a87dfbd91a9f2d61ce142d0fbc452c2da792de43298e4c0abfb31ff914", size = 22642 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/96/7c/4beefccec7c764279181b24c931add22bbd9723772a0bd02c86271114a82/langchain_gigachat-0.3.11-py3-none-any.whl", hash = "sha256:7f705d34771cf8f01d4c1e56882c4941e43487d06a75e1baa97c2d7bdf0e7688", size = 27308 },
+]
+
+[[package]]
+name = "langchain-redis"
+version = "0.2.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "certifi" },
+    { name = "httpcore" },
+    { name = "jinja2" },
+    { name = "langchain-core" },
+    { name = "python-ulid" },
+    { name = "redisvl" },
+    { name = "typing-extensions" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6a/f8/5448b8db4cb62473b74f7d11630856cb9668766f364dfd39b885091b379f/langchain_redis-0.2.3.tar.gz", hash = "sha256:6f2f6adb1790934b6fd28e3acc5d3ea0c53d1b1c76dda9187203548746ef05bb", size = 31357 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d4/48/9c147dfb23425f20ccd80894ab693cbfb9c6d993804d17ac7dc02c9bfdab/langchain_redis-0.2.3-py3-none-any.whl", hash = "sha256:c47a4e2f40f415fe626c2c1953b9199f527c83b16a4622f6a4db9acac7be9f0c", size = 32416 },
 ]
 
 [[package]]
