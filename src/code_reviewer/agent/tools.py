@@ -1,17 +1,27 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from weaviate.classes.config import Property
+
 import logging
 
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import ArgsSchema, ToolException
 from pydantic import BaseModel, Field
 
-from ..memory import LIMIT, BaseMemoryTool, Memory, MemoryType
+from .constants import FORMATED_MODULE_PROPERTIES, FORMATED_DOCS_PROPERTIES
+from ..memory import BaseRedisMemoryTool, Memory, MemoryType
+from ..vectorstore import BaseWeaviateSearchTool
 
 DISTANCE_THRESHOLD = 0.3
+LIMIT = 5
 
 logger = logging.getLogger(__name__)
 
 
-class StoreMemoryTool(BaseMemoryTool):
+class StoreMemoryTool(BaseRedisMemoryTool):
     name: str = "store_memory_tool"
     description: str = """Храни долговременную память в системе.
     
@@ -73,7 +83,7 @@ class RetrieveMemoriesArgsSchema(BaseModel):
     limit: int = Field(default=LIMIT, description="Лимит извлекаемых воспоминаний")
 
 
-class RetrieveMemoriesTool(BaseMemoryTool):
+class RetrieveMemoriesTool(BaseRedisMemoryTool):
     name: str = "retrieve_memory_tool"
     description: str = """Получение долговременной памяти, относящейся к вопросу.
     
@@ -137,3 +147,29 @@ class RetrieveMemoriesTool(BaseMemoryTool):
             return "\n".join(response)
         except Exception as e:
             raise ToolException(f"Ошибка при извлечении памяти: {e}") from e
+
+
+class SearchArgsSchema(BaseModel):
+    query: str = Field(description="Запрос для поиска")
+    limit: int = Field(default=LIMIT, description="Количество поисковых результатов")
+
+
+class SearchModulesTool(BaseWeaviateSearchTool):
+    name: str = "search_modules_tool"
+    description: str = """
+    """
+    args_schema: ArgsSchema | None = SearchArgsSchema
+    collection_name: str = "Modules"
+
+    def _format_properties(self, properties: list[Property]) -> str:
+        return FORMATED_MODULE_PROPERTIES.format(*properties)
+
+
+class SearchDocsTool(BaseWeaviateSearchTool):
+    name: str = "search_docs_tool"
+    description: str = ""
+    args_schema: ArgsSchema | None = SearchArgsSchema
+    collection_name: str = "Docs"
+
+    def _format_properties(self, properties: list[Property]) -> str:
+        return FORMATED_DOCS_PROPERTIES.format(*properties)

@@ -49,7 +49,7 @@ client.is_ready()
     for node in nodes
 ]
 
-documentations = client.collections.get("Documentations")
+documentations = client.schemas.get("Documentations")
 
 with documentations.batch.fixed_size(batch_size=100) as batch:
     for object in objects:

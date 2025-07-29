@@ -15,7 +15,7 @@ client.is_ready()
 
 '''
 try:
-    documentations = client.collections.create(
+    documentations = client.schemas.create(
         name="Documentations",
         description="Документация для работы с 1С (статьи, руководства, книги)",
         properties=[
@@ -46,7 +46,7 @@ try:
 except Exception as e:
     print(e)
 
-# client.collections.delete("Documentations")
+# client.schemas.delete("Documentations")
 '''
 
 
@@ -95,6 +95,6 @@ try:
 except Exception as e:
     print(e)
 
-# client.collections.delete("Modules")
+# client.schemas.delete("Modules")
 
 client.close()
