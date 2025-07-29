@@ -52,7 +52,7 @@ class BaseWeaviateSearchTool(BaseTool):
         if self.collection_name is None:
             raise ValueError("Collection name must be defined!")
         collection = self.async_client.collections.get(self.collection_name)
-        embeded_query = await self.embeddings.embed_query(query)
+        embeded_query = await self.embeddings.aembed_query(query)
         response = await collection.query.near_vector(embeded_query, limit=limit)
         formated_properties: list[str] = []
         for object in response.objects:

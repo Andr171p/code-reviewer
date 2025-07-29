@@ -2,9 +2,32 @@ from langchain_core.documents import Document
 from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel, Field
 
-from ..utils.chains import create_llm_chain_with_structured_output
-from ..utils.converters import get_github_repo_name
-from ..prompts import DESCRIPTION_GENERATOR_PROMPT
+from .constants import GITHUB_API_BASE_URL
+from .utils.chains import create_llm_chain_with_structured_output
+
+DESCRIPTION_GENERATOR_PROMPT = """\
+Ты опытный разработчик 1С, анализирующий модуль BSL. Сгенерируй краткое, но информативное описание назначения модуля (2-3 предложения) по следующим правилам:
+
+1. Определи тип модуля (обработка, отчет, общий модуль, менеджер и т.д.)
+2. Выдели ключевую функциональность
+3. Укажи основные сущности/объекты 1С, с которыми работает модуль
+4. Отметь специфичные особенности (если есть)
+
+Данные для анализа:
+- Проект: {project}
+- Имя модуля: {filename}
+- Путь в проекте: {path}
+- Код модуля: {content}
+
+Верните ответ в виде ВАЛИДНОГО JSON со следующей структурой:
+{format_instructions}
+"""
+
+
+def get_github_repo_name(repo_url: str) -> str:
+    repo_url = repo_url.replace(GITHUB_API_BASE_URL, "")
+    parts = repo_url.split("/")
+    return f"{parts[1]}/{parts[2]}"
 
 
 class ModuleDescription(BaseModel):
@@ -13,8 +36,8 @@ class ModuleDescription(BaseModel):
     details: str = Field(default="", description="Дополнительные детали")
 
 
-class BSLDocumentContextEnricher:
-    def __init__(self, llm: BaseChatModel | None = None) -> None:
+class BSLGithubContextEnricher:
+    def __init__(self, llm: BaseChatModel) -> None:
         self.llm = llm
 
     def enrich_documents(self, documents: list[Document]) -> list[Document]:

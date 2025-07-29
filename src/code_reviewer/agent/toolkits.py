@@ -2,12 +2,12 @@ from typing import cast
 
 from functools import cached_property
 
-from langchain_core.embeddings import Embeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.tools import BaseTool, BaseToolkit
 from pydantic import ConfigDict, Field
 from redis import Redis
 from redis.asyncio import Redis as AsyncRedis
-from redisvl.utils.vectorize import BaseVectorizer
+from redisvl.utils.vectorize import HFTextVectorizer
 from weaviate import WeaviateAsyncClient, WeaviateClient
 
 from ..vectorstore import BaseWeaviateSearchTool
@@ -18,9 +18,13 @@ from .tools import RetrieveMemoriesTool, StoreMemoryTool, SearchModulesTool, Sea
 class RedisLongTermMemoryToolkit(BaseToolkit):
     """Toolkit для работы с долгосрочной памятью используя Redis"""
     url: str = Field(description="URL для подключения к Redis")
-    vectorizer: BaseVectorizer = Field(exclude=True)
+    hf_vectorizer_model: str = Field(description="Название модели с HuggingFace")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @cached_property
+    def vectorizer(self) -> HFTextVectorizer:
+        return HFTextVectorizer(model=self.hf_vectorizer_model)
 
     @cached_property
     def storage(self) -> RedisMemoryStorage:
@@ -56,7 +60,11 @@ class WeaviateSearchToolkit(BaseToolkit):
     connection_params: dict[str, str | int] = Field(
         description="Параметры для подключения в Weaviate"
     )
-    embeddings: Embeddings = Field(exclude=True)
+    hf_embeddings_model: str = Field(description="Название модели с HuggingFace")
+
+    @cached_property
+    def embeddings(self) -> HuggingFaceEmbeddings:
+        return HuggingFaceEmbeddings(model=self.hf_embeddings_model)
 
     @cached_property
     def client(self) -> WeaviateClient:
