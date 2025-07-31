@@ -3,6 +3,7 @@ from typing import TypeVar
 from pydantic import BaseModel
 
 from langchain_core.runnables import Runnable
+from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.language_models import BaseChatModel
 from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
@@ -36,7 +37,7 @@ def create_llm_chain_with_structured_output[T](
 
 
 def create_llm_chain(
-    prompt_template: str, 
+    prompt_template: str,
     llm: BaseChatModel
 ) -> Runnable[dict[str, str], str]:
     """Creating simple LLM chain.
@@ -49,3 +50,7 @@ def create_llm_chain(
         Runnable[dict[str, str], str]: Built chain.
     """
     return ChatPromptTemplate.from_template(prompt_template) | llm | StrOutputParser()
+
+
+def format_documents(documents: list[Document]) -> str:
+    return "\n\n".join([document.page_content for document in documents])

@@ -8,8 +8,7 @@ from pydantic import ConfigDict, Field
 from redis import Redis
 from redis.asyncio import Redis as AsyncRedis
 from redisvl.utils.vectorize import HFTextVectorizer
-from weaviate import WeaviateAsyncClient, WeaviateClient
-from weaviate.connect import ConnectionParams, ProtocolParams
+from weaviate.connect import ConnectionParams
 
 from ..vectorstore import BaseWeaviateSearchTool
 from ..memory import AsyncRedisMemoryStorage, BaseRedisMemoryTool, RedisMemoryStorage, memory_schema
@@ -58,7 +57,7 @@ class RedisLongTermMemoryToolkit(BaseToolkit):
 
 class WeaviateSearchToolkit(BaseToolkit):
     """Toolkit для поиска по индексам weaviate"""
-    connection_params: dict[str, str | int] = Field(
+    connection_params: ConnectionParams = Field(
         description="Параметры для подключения в Weaviate"
     )
     hf_embeddings_model: str = Field(description="Название модели с HuggingFace")
@@ -66,40 +65,6 @@ class WeaviateSearchToolkit(BaseToolkit):
     @cached_property
     def embeddings(self) -> HuggingFaceEmbeddings:
         return HuggingFaceEmbeddings(model=self.hf_embeddings_model)
-
-    @cached_property
-    def client(self) -> WeaviateClient:
-        return WeaviateClient(
-            connection_params=ConnectionParams(
-                http=ProtocolParams(
-                    host=self.connection_params["http_host"],
-                    port=self.connection_params["http_port"],
-                    secure=self.connection_params["http_secure"]
-                ),
-                grpc=ProtocolParams(
-                    host=self.connection_params["grpc_host"],
-                    port=self.connection_params["grpc_port"],
-                    secure=self.connection_params["grpc_secure"]
-                )
-            )
-        )
-
-    @cached_property
-    def async_client(self) -> WeaviateAsyncClient:
-        return WeaviateAsyncClient(
-            connection_params=ConnectionParams(
-                http=ProtocolParams(
-                    host=self.connection_params["http_host"],
-                    port=self.connection_params["http_port"],
-                    secure=self.connection_params["http_secure"]
-                ),
-                grpc=ProtocolParams(
-                    host=self.connection_params["grpc_host"],
-                    port=self.connection_params["grpc_port"],
-                    secure=self.connection_params["grpc_secure"]
-                )
-            )
-        )
 
     def get_tools(self) -> list[BaseTool]:
         tool_classes: list[type[BaseWeaviateSearchTool]] = [

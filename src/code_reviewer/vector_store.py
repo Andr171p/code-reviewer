@@ -3,8 +3,7 @@ import logging
 
 from src.code_reviewer.agent.workflow import chat
 
-query = """Привет, я пишу проект который интегрируется с внешним api, как я могу это реализовать в 1С
-"""
+query = "О чем мы говорили"
 
 
 async def main() -> None:

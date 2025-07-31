@@ -3,7 +3,7 @@ from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel, Field
 
 from .constants import GITHUB_API_BASE_URL
-from .utils.chains import create_llm_chain_with_structured_output
+from .utils import create_llm_chain_with_structured_output
 
 DESCRIPTION_GENERATOR_PROMPT = """\
 Ты опытный разработчик 1С, анализирующий модуль BSL. Сгенерируй краткое, но информативное описание назначения модуля (2-3 предложения) по следующим правилам:
@@ -74,3 +74,20 @@ class BSLGithubContextEnricher:
             "content": content
         })
         return description
+
+
+ENRICHMENT_PAGE_CONTENT = """**Проект**: {project}
+**Имя модуля**: {filename}
+**Путь до модуля в проекте**: {path}
+**Часть кода модуля**: {content}
+**Тип модуля**: {type}
+**Основная задача модуля**: {purpose}
+**Дополнительные детали**: {detail}
+"""
+
+
+def enrich_page_content(document: Document) -> Document:
+    enrichment_page_content = ENRICHMENT_PAGE_CONTENT.format(
+        content=document.page_content, **document.metadata
+    )
+    return Document(page_content=enrichment_page_content)

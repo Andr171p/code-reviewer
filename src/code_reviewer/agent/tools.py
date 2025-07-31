@@ -154,22 +154,14 @@ class SearchArgsSchema(BaseModel):
     limit: int = Field(default=LIMIT, description="Количество поисковых результатов")
 
 
-class SearchModulesTool(BaseWeaviateSearchTool):
-    name: str = "search_modules_tool"
+class ModulesRetrieverTool(BaseWeaviateSearchTool):
+    name: str = "modules_retriever_tool"
     description: str = """Используй этот инструмент для поиска примеров кода из bsl модулей
     """
     args_schema: ArgsSchema | None = SearchArgsSchema
-    collection_name: str = "Modules"
-
-    def _format_properties(self, properties: list[Property]) -> str:
-        return FORMATED_MODULE_PROPERTIES.format(*properties)
 
 
-class SearchDocsTool(BaseWeaviateSearchTool):
-    name: str = "search_docs_tool"
+class DocsRetrieverTool(BaseWeaviateSearchTool):
+    name: str = "docs_retriever_tool"
     description: str = "используй этот инструмент для поиска информации книгах и документации по 1С"
     args_schema: ArgsSchema | None = SearchArgsSchema
-    collection_name: str = "Docs"
-
-    def _format_properties(self, properties: list[Property]) -> str:
-        return FORMATED_DOCS_PROPERTIES.format(*properties)
