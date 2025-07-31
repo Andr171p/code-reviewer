@@ -25,9 +25,11 @@ class BaseWeaviateSearchTool(BaseTool):
             async_client: WeaviateAsyncClient | None = None,
             embeddings: Embeddings | None = None
     ) -> BaseWeaviateSearchTool:
-        return cls(client=client, async_client=async_client)
+        return cls(
+            client=client, async_client=async_client, embeddings=embeddings
+        )
 
-    @model_validator(mode="before")
+    @model_validator(mode="after")
     def validate_client_provided(self) -> BaseWeaviateSearchTool:
         if self.client is None and self.async_client is None:
             raise ValueError("Either clients instances must be provided!")

@@ -1,9 +1,14 @@
+import os
+from dotenv import load_dotenv
+
 import weaviate
 from llama_index.readers.file import PyMuPDFReader
 from llama_index.core.node_parser import LangchainNodeParser
 from llama_index.vector_stores.weaviate import WeaviateVectorStore
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+load_dotenv()
 
 PDF_PATH = (
     r"C:\Users\andre\CodeReviewer\assets\docs\Руководство-пользователя-83.004.04.pdf"
@@ -29,17 +34,19 @@ node_parser = LangchainNodeParser(RecursiveCharacterTextSplitter(
 nodes = node_parser.get_nodes_from_documents(documents)
 
 client = weaviate.connect_to_custom(
-    http_host="",
-    http_port=...,
+    http_host=os.getenv("WEAVIATE_HTTP_HOST"),
+    http_port=os.getenv("WEAVIATE_HTTP_PORT"),
     http_secure=False,
-    grpc_host="",
-    grpc_port=...,
+    grpc_host=os.getenv("WEAVIATE_GRPC_HOST"),
+    grpc_port=os.getenv("WEAVIATE_GRPC_PORT"),
     grpc_secure=False
 )
 
 client.is_ready()
 
-'''objects = [
+nodes = nodes[:50]
+
+objects = [
     {
         "source": node.metadata.get("filename"),
         "content": node.text,
@@ -49,23 +56,22 @@ client.is_ready()
     for node in nodes
 ]
 
-documentations = client.schemas.get("Documentations")
+docs = client.collections.get("Docs")
 
-with documentations.batch.fixed_size(batch_size=100) as batch:
+with docs.batch.fixed_size(batch_size=len(objects)) as batch:
     for object in objects:
         embedding = embeddings.get_text_embedding(object["content"])
         batch.add_object(
             properties=object,
-            uuid=None,
-            vector=embedding
-        )'''
+            vector={"content": embedding}
+        )
 
 
 query = "Какие лучшие практики создания метаданных?"
 
 vector = embeddings.get_text_embedding(query)
 
-documentations = client.collections.get("Documentations")
+documentations = client.collections.get("Docs")
 
 response = documentations.query.near_vector(vector)
 

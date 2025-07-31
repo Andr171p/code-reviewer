@@ -22,7 +22,7 @@ class BaseRedisMemoryTool(BaseTool):
         """Инициализация инструмента через уже готовое хранилище"""
         return cls(storage=storage, async_storage=async_storage)
 
-    @model_validator(mode="before")
+    @model_validator(mode="after")
     def validate_storage_provided(self) -> BaseRedisMemoryTool:
         """Проверка инициализации разных типов памяти"""
         if self.storage is None and self.async_storage is None:

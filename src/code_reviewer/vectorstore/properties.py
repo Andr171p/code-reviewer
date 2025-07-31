@@ -43,7 +43,7 @@ MODULE_PROPERTIES: list[Property] = [
     )
 ]
 
-DOCS_PROPERTIES = [
+DOCS_PROPERTIES: list[Property] = [
     Property(
         name="source",
         description="Источник от куда взят материал",

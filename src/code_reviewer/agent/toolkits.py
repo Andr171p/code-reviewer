@@ -9,6 +9,7 @@ from redis import Redis
 from redis.asyncio import Redis as AsyncRedis
 from redisvl.utils.vectorize import HFTextVectorizer
 from weaviate import WeaviateAsyncClient, WeaviateClient
+from weaviate.connect import ConnectionParams, ProtocolParams
 
 from ..vectorstore import BaseWeaviateSearchTool
 from ..memory import AsyncRedisMemoryStorage, BaseRedisMemoryTool, RedisMemoryStorage, memory_schema
@@ -22,11 +23,11 @@ class RedisLongTermMemoryToolkit(BaseToolkit):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    @cached_property
+    @property
     def vectorizer(self) -> HFTextVectorizer:
         return HFTextVectorizer(model=self.hf_vectorizer_model)
 
-    @cached_property
+    @property
     def storage(self) -> RedisMemoryStorage:
         return RedisMemoryStorage(
             client=Redis.from_url(self.url),
@@ -34,7 +35,7 @@ class RedisLongTermMemoryToolkit(BaseToolkit):
             vectorizer=self.vectorizer
         )
 
-    @cached_property
+    @property
     def async_storage(self) -> AsyncRedisMemoryStorage:
         return AsyncRedisMemoryStorage(
             client=AsyncRedis.from_url(self.url),
@@ -68,11 +69,37 @@ class WeaviateSearchToolkit(BaseToolkit):
 
     @cached_property
     def client(self) -> WeaviateClient:
-        return WeaviateClient(**self.connection_params)
+        return WeaviateClient(
+            connection_params=ConnectionParams(
+                http=ProtocolParams(
+                    host=self.connection_params["http_host"],
+                    port=self.connection_params["http_port"],
+                    secure=self.connection_params["http_secure"]
+                ),
+                grpc=ProtocolParams(
+                    host=self.connection_params["grpc_host"],
+                    port=self.connection_params["grpc_port"],
+                    secure=self.connection_params["grpc_secure"]
+                )
+            )
+        )
 
     @cached_property
     def async_client(self) -> WeaviateAsyncClient:
-        return WeaviateAsyncClient(**self.connection_params)
+        return WeaviateAsyncClient(
+            connection_params=ConnectionParams(
+                http=ProtocolParams(
+                    host=self.connection_params["http_host"],
+                    port=self.connection_params["http_port"],
+                    secure=self.connection_params["http_secure"]
+                ),
+                grpc=ProtocolParams(
+                    host=self.connection_params["grpc_host"],
+                    port=self.connection_params["grpc_port"],
+                    secure=self.connection_params["grpc_secure"]
+                )
+            )
+        )
 
     def get_tools(self) -> list[BaseTool]:
         tool_classes: list[type[BaseWeaviateSearchTool]] = [

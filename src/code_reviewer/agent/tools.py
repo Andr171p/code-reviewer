@@ -156,7 +156,7 @@ class SearchArgsSchema(BaseModel):
 
 class SearchModulesTool(BaseWeaviateSearchTool):
     name: str = "search_modules_tool"
-    description: str = """
+    description: str = """Используй этот инструмент для поиска примеров кода из bsl модулей
     """
     args_schema: ArgsSchema | None = SearchArgsSchema
     collection_name: str = "Modules"
@@ -167,7 +167,7 @@ class SearchModulesTool(BaseWeaviateSearchTool):
 
 class SearchDocsTool(BaseWeaviateSearchTool):
     name: str = "search_docs_tool"
-    description: str = ""
+    description: str = "используй этот инструмент для поиска информации книгах и документации по 1С"
     args_schema: ArgsSchema | None = SearchArgsSchema
     collection_name: str = "Docs"
 

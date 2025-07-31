@@ -381,6 +381,8 @@ dependencies = [
     { name = "langchain-huggingface" },
     { name = "langchain-redis" },
     { name = "langgraph" },
+    { name = "langgraph-checkpoint" },
+    { name = "langgraph-checkpoint-redis" },
     { name = "llama-index" },
     { name = "llama-index-embeddings-huggingface" },
     { name = "llama-index-extractors-entity" },
@@ -414,6 +416,8 @@ requires-dist = [
     { name = "langchain-huggingface", specifier = ">=0.3.1" },
     { name = "langchain-redis", specifier = ">=0.2.3" },
     { name = "langgraph", specifier = ">=0.5.3" },
+    { name = "langgraph-checkpoint", specifier = ">=2.1.0" },
+    { name = "langgraph-checkpoint-redis", specifier = ">=0.0.8" },
     { name = "llama-index", specifier = ">=0.12.52" },
     { name = "llama-index-embeddings-huggingface", specifier = ">=0.5.5" },
     { name = "llama-index-extractors-entity", specifier = ">=0.3.1" },
@@ -1299,6 +1303,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/f9/30/c04abcb2ac30f200dbfde5839ca3832552fe2bd852d9e85a68e47418a11c/langgraph_checkpoint-2.1.0.tar.gz", hash = "sha256:cdaa2f0b49aa130ab185c02d82f02b40299a1fbc9ac59ac20cecce09642a1abe", size = 135501 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0f/41/390a97d9d0abe5b71eea2f6fb618d8adadefa674e97f837bae6cda670bc7/langgraph_checkpoint-2.1.0-py3-none-any.whl", hash = "sha256:4cea3e512081da1241396a519cbfe4c5d92836545e2c64e85b6f5c34a1b8bc61", size = 43844 },
+]
+
+[[package]]
+name = "langgraph-checkpoint-redis"
+version = "0.0.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "langgraph-checkpoint" },
+    { name = "redisvl" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9e/d8/dd264cecbc5ab299181b0d1259c8d960e84bfad9b46135f4d55dc427746b/langgraph_checkpoint_redis-0.0.8.tar.gz", hash = "sha256:d0bc72bbd77cdede274d2fa4b1d028b6c3185ddfe843646834c79d590848d6fb", size = 53213 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/21/4e/d91901da7e0aa51b33b275098bcc319102773826888483e9cddd2ba1815e/langgraph_checkpoint_redis-0.0.8-py3-none-any.whl", hash = "sha256:784dfbc65278e51f2010a578118d1d626a375e397fac435a10cf6c1d7dfebae1", size = 62112 },
 ]
 
 [[package]]
