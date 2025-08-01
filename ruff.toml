@@ -88,4 +88,4 @@ section-order = [
 ]
 
 [lint.isort.sections]
-"typings" = ['typing']
+"typings" = ["typing"]

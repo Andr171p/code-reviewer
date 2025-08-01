@@ -36,6 +36,7 @@ class RedisMemoryStorage:
                 validate_on_load=True
             )
             memory_index.create(overwrite=False)
+            return memory_index
         except SchemaValidationError as e:
             logger.exception("Error creating schema: %s", str(e))
 
@@ -48,7 +49,10 @@ class RedisMemoryStorage:
             distance_threshold: float = DISTANCE_THRESHOLD,
     ) -> bool:
         memory_index = self._get_or_create_index()
-        filters = (Tag("user_id") == user_id) & (Tag("memory_type") == memory_type)
+        filters = (
+                (Tag("user_id") == user_id) &
+                (Tag("memory_type") == memory_type)
+        )
         if thread_id:
             filters = filters & (Tag("thread_id") == thread_id)
         content_embedding = self.vectorizer.embed(content)
@@ -127,7 +131,7 @@ class RedisMemoryStorage:
         base_filter = [f"@user_id:{{{user_id}}}"]
         if memory_type:
             if isinstance(memory_type, list):
-                base_filter.append(f"@memory_type:{{{'|'.join(memory_type)}}}")
+                base_filter.append(f"@memory_type:{{{"|".join(memory_type)}}}")
             else:
                 base_filter.append(f"@memory_type:{{{memory_type.value}}}")
         if thread_id:
@@ -162,6 +166,7 @@ class AsyncRedisMemoryStorage:
                 validate_on_load=True
             )
             await memory_index.create(overwrite=False)
+            return memory_index
         except SchemaValidationError as e:
             logger.exception("Error creating schema: %s", str(e))
 
@@ -253,7 +258,7 @@ class AsyncRedisMemoryStorage:
         base_filter = [f"@user_id:{{{user_id}}}"]
         if memory_type:
             if isinstance(memory_type, list):
-                base_filter.append(f"@memory_type:{{{'|'.join(memory_type)}}}")
+                base_filter.append(f"@memory_type:{{{"|".join(memory_type)}}}")
             else:
                 base_filter.append(f"@memory_type:{{{memory_type.value}}}")
         if thread_id:

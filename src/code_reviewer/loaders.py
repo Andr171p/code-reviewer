@@ -8,7 +8,7 @@ from langchain_core.document_loaders import BaseLoader
 from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel, Field
 
-from .utils.chains import create_llm_chain_with_structured_output
+from .utils import create_llm_chain_with_structured_output
 from .prompts import DESCRIPTION_GENERATOR_PROMPT
 
 logger = logging.getLogger(__name__)

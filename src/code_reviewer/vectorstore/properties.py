@@ -1,6 +1,6 @@
 from weaviate.classes.config import Property, DataType
 
-MODULE_PROPERTIES: list[Property] = [
+BSL_PROPERTIES: list[Property] = [
     Property(
         name="source",
         description="Источник от куда взят код",
