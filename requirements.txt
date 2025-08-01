@@ -17,3 +17,5 @@ ulid~=1.1
 python-ulid~=3.0.0
 redisvl~=0.8.0
 redis~=6.2.0
+sentence-transformers~=5.0.0
+pydantic-settings~=2.10.1

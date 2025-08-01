@@ -5,7 +5,7 @@ from typing import Any
 from langchain_core.tools import BaseTool
 from pydantic import model_validator
 
-from .storage import AsyncRedisMemoryStorage, RedisMemoryStorage
+from .storage import RedisMemoryStore
 
 
 class BaseRedisMemoryTool(BaseTool):

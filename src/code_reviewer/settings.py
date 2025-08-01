@@ -1,92 +1,47 @@
-import logging
+from pathlib import Path
 
-import weaviate
+from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_gigachat import GigaChat
+ENV_PATH = BASE_DIR / ".env"
 
-from src.code_reviewer.splitters.separators import BSL_SEPARATORS
-from src.code_reviewer.loaders import BSLContextEnrichmentDirectoryLoader
+load_dotenv(ENV_PATH)
 
-logging.basicConfig(level=logging.INFO)
 
-embeddings = HuggingFaceEmbedding(
-    model_name="deepvk/USER-bge-m3", device="cpu"
-)
+class WeaviateSettings(BaseSettings):
+    http_host: str = "localhost"
+    http_port: int = 8080
+    grpc_host: str = "localhost"
+    grpc_port: int = 50051
 
-# DIR_PATH = r"C:\Users\andre\CodeReviewer\assets\1С_Бухгалтерия"
+    model_config = SettingsConfigDict(env_prefix="WEAVIATE_")
 
-DIR_PATH = r"C:\Users\andre\Downloads\1С_Бухгалтерия"
 
-llm = GigaChat(
-    credentials="",
-    scope="",
-    model="",
-    verify_ssl_certs=False,
-    profanity_check=False
-)
+class RedisSettings(BaseSettings):
+    host: str = "localhost"
+    port: int = 6379
 
-loader = BSLContextEnrichmentDirectoryLoader(
-    dir_path=DIR_PATH,
-    llm=llm
-)
+    model_config = SettingsConfigDict(env_prefix="REDIS_")
 
-documents = loader.load()
+    @property
+    def url(self) -> str:
+        return f"redis://{self.host}:{self.port}/0"
 
-print(len(documents))
 
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=600,
-    chunk_overlap=20,
-    length_function=len,
-    separators=BSL_SEPARATORS
-)
+class GigaChatSettings(BaseSettings):
+    api_key: str = ""
+    scope: str = ""
+    model_name: str = "GigaChat:latest"
 
-chunks = splitter.split_documents(documents)
+    model_config = SettingsConfigDict(env_prefix="GIGACHAT_")
 
-print(len(chunks))
 
-client = weaviate.connect_to_custom(
-    http_host="10.1.50.85",
-    http_port=8090,
-    http_secure=False,
-    grpc_host="10.1.50.85",
-    grpc_port=50051,
-    grpc_secure=False
-)
+class Settings(BaseSettings):
+    weaviate: WeaviateSettings = WeaviateSettings()
+    redis: RedisSettings = RedisSettings()
+    gigachat: GigaChatSettings = GigaChatSettings()
 
-client.is_ready()
 
-modules = client.collections.get("Modules")
-
-objects = [
-    {
-        "project": chunk.metadata["project"],
-        "filename": chunk.metadata["filename"],
-        "file_path": chunk.metadata["file_path"],
-        "content": chunk.page_content,
-        "type": chunk.metadata.get("type"),
-        "purpose": chunk.metadata.get("purpose"),
-        "detail": chunk.metadata.get("detail")
-    }
-    for chunk in chunks
-]
-
-with modules.batch.fixed_size() as batch:
-    for object in objects:
-        batch.add_object(
-            properties=object,
-            vector={
-                "project": embeddings.get_text_embedding(object["project"]),
-                "filename": embeddings.get_text_embedding(object["filename"]),
-                "file_path": embeddings.get_text_embedding(object["file_path"]),
-                "content": embeddings.get_text_embedding(object["content"]),
-                "type": embeddings.get_text_embedding(object["type"]),
-                "purpose": embeddings.get_text_embedding(object["purpose"]),
-                "detail": embeddings.get_text_embedding(object["detail"])
-            }
-        )
-
-client.close()
+settings = Settings()

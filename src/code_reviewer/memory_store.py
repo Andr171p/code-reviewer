@@ -12,9 +12,9 @@ from redisvl.schema import IndexSchema
 from sentence_transformers import SentenceTransformer
 from ulid import ULID
 
-from ..base import BaseMemoryStore
+from .base import BaseMemoryStore
 from .constants import DEFAULT_USER_ID, DIALECT, DISTANCE_THRESHOLD, LIMIT, MOSCOW_TZ, NUM_RESULTS
-from .models import Memory, MemoryType
+from .schemas import Memory, MemoryType
 
 logger = logging.getLogger(__name__)
 

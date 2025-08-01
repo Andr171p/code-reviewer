@@ -3,7 +3,7 @@ from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel, Field
 
 from .constants import GITHUB_API_BASE_URL
-from .utils import create_llm_chain_with_structured_output
+from src.code_reviewer.agent.utils import create_llm_chain_with_structured_output
 
 DESCRIPTION_GENERATOR_PROMPT = """\
 Ты опытный разработчик 1С, анализирующий модуль BSL. Сгенерируй краткое, но информативное описание назначения модуля (2-3 предложения) по следующим правилам:

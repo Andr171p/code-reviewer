@@ -11,7 +11,7 @@ from weaviate.connect import ConnectionParams
 from weaviate.classes.config import Property
 
 from .retriever import WeaviateRetriever
-from ..utils import format_documents
+from src.code_reviewer.agent.utils import format_documents
 
 logger = logging.getLogger(__name__)
 

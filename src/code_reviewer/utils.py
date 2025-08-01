@@ -1,56 +1,17 @@
-from typing import TypeVar
+from typing import Any, TypeVar
 
-from pydantic import BaseModel
+import asyncio
+from collections.abc import Coroutine
 
-from langchain_core.runnables import Runnable
-from langchain_core.documents import Document
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.language_models import BaseChatModel
-from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
-
-T = TypeVar("T", bound=BaseModel)
+T = TypeVar("T")
 
 
-def create_llm_chain_with_structured_output[T](
-    output_schema: type[T],
-    llm: BaseChatModel,
-    prompt_template: str,
-) -> Runnable[dict[str, str], T]:
-    """Creating chain of callings with structured pydantic output.
-
-    Args:
-        output_schema (type[T]): Type of excepted chain output pydantic schema.
-        llm (BaseChatModel): LLM for calling.
-        prompt_template (str): Prompt template with instructions for LLM, required `format_instructions` value.
-
-    Returns:
-        Runnable[dict[str, str], T]: Built chain.
+def run_async[T](coroutine: Coroutine[Any, Any, T]) -> T:
     """
-    parser = PydanticOutputParser(pydantic_object=output_schema)
-    prompt = (
-        ChatPromptTemplate.from_messages([("system", prompt_template)])
-        .partial(
-            format_instructions=parser.get_format_instructions(),
-        )
-    )
-    return prompt | llm | parser
+    Выполняет асинхронную функцию синхронно.
 
-
-def create_llm_chain(
-    prompt_template: str,
-    llm: BaseChatModel
-) -> Runnable[dict[str, str], str]:
-    """Creating simple LLM chain.
-
-    Args:
-        prompt_template (str): Prompt template for giving instructions to model.
-        llm (BaseChatModel): Model for calling.
-
-    Returns:
-        Runnable[dict[str, str], str]: Built chain.
+    :param coroutine: Асинхронная функция для запуска.
+    :return: T результат выполнения асинхронной функции.
     """
-    return ChatPromptTemplate.from_template(prompt_template) | llm | StrOutputParser()
-
-
-def format_documents(documents: list[Document]) -> str:
-    return "\n\n".join([document.page_content for document in documents])
+    event_loop = asyncio.get_event_loop()
+    return event_loop.run_until_complete(coroutine)
