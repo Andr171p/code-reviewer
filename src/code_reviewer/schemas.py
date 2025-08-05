@@ -10,12 +10,27 @@ from ulid import ULID
 DEFAULT_MEMORY_METADATA = "{}"
 
 
+class AgentMode(StrEnum):
+    """Режимы работы ИИ агента.
+
+    Attributes:
+        DEFAULT: Стандартный режим (поддерживает QA, tools calling, mcp)
+        RESEARCHER: Режим для задач требующих проведения исследования.
+        REASONER: Для сложных задач требующих рассуждений и планирования.
+    """
+    DEFAULT = "default"
+    REVIEWER = "reviewer"
+    RESEARCHER = "researcher"
+    REASONER = "reasoner"
+
+
 class MemoryType(StrEnum):
     """Определяет тип долгосрочной памяти
     для категоризации и извлечения информации.
 
-    :param EPISODIC: Личный опыт и предпочтения пользователя.
-    :param SEMANTIC: Общие знания предметной области и факты.
+    Attributes:
+        EPISODIC: Личный опыт и предпочтения пользователя.
+        SEMANTIC: Общие знания предметной области и факты.
     """
     EPISODIC = "episodic"
     SEMANTIC = "semantic"

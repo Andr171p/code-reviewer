@@ -4,8 +4,6 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
-    "antlr4-python3-runtime>=4.13.2",
-    "aspose-cells-python>=25.7.0",
     "dishka>=1.6.0",
     "fastapi[all]>=0.116.1",
     "langchain>=0.3.26",
@@ -29,6 +27,7 @@ dependencies = [
     "networkx>=3.5",
     "pymupdf4llm>=0.0.27",
     "python-ulid>=3.0.0",
+    "pytz>=2025.2",
     "redis>=6.2.0",
     "redisvl>=0.8.0",
     "spacy>=3.8.7",

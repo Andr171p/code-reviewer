@@ -13,22 +13,25 @@ from sentence_transformers import SentenceTransformer
 from ulid import ULID
 
 from ..base import BaseMemoryStore
-from .constants import DEFAULT_USER_ID, DIALECT, DISTANCE_THRESHOLD, LIMIT, MOSCOW_TZ, NUM_RESULTS
-from .models import Memory, MemoryType
+from .constants import (
+    DEFAULT_USER_ID,
+    DIALECT,
+    DISTANCE_THRESHOLD,
+    LIMIT,
+    MEMORY_SCHEMA_YML,
+    MOSCOW_TZ,
+    NUM_RESULTS,
+)
+from ..schemas import MemoryType, Memory
 
 logger = logging.getLogger(__name__)
 
 
 class RedisMemoryStore(BaseMemoryStore):
-    def __init__(
-            self,
-            client: AsyncRedis,
-            schema: IndexSchema,
-            vectorizer: SentenceTransformer
-    ) -> None:
+    def __init__(self, client: AsyncRedis, vectorizer: SentenceTransformer) -> None:
         self.client = client
-        self.schema = schema
         self.vectorizer = vectorizer
+        self.schema = IndexSchema.from_yaml(MEMORY_SCHEMA_YML)
 
     def _get_or_create_index(self) -> AsyncSearchIndex:
         try:

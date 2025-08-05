@@ -20,11 +20,11 @@ client = weaviate.connect_to_custom(
 client.is_ready()
 
 
-def create_code_collection() -> None:
+def create_dev_collection() -> None:
     try:
         client.collections.create(
-            name="Code",
-            description="Коллекция для хранения .bsl модулей",
+            name="DevCollection",
+            description="Коллекция для хранения материалов для разработки на 1С",
             vector_config=[
                 Configure.Vectors.self_provided(
                     name="content",
@@ -44,7 +44,7 @@ def create_code_collection() -> None:
 
 
 def main() -> None:
-    create_code_collection()
+    create_dev_collection()
     client.close()
 
 

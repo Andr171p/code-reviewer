@@ -53,5 +53,5 @@ class BaseVectorStore(ABC):
         pass
 
     @abstractmethod
-    async def add(self, document: list[Document], **kwargs) -> None:
+    async def add_documents(self, document: list[Document], **kwargs) -> None:
         pass

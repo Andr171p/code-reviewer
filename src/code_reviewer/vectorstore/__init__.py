@@ -1,5 +1,7 @@
 __all__ = (
-    "BaseWeaviateSearchTool",
+    "WeaviateVectorStore",
+    "SimilaritySearchTool",
 )
 
-from .tool import BaseWeaviateSearchTool
+from .vectorstore import WeaviateVectorStore
+from .tools import SimilaritySearchTool

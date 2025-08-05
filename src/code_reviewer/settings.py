@@ -1,11 +1,13 @@
 from pathlib import Path
+import pytz
 
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
 ENV_PATH = BASE_DIR / ".env"
+TIMEZONE = "Europe/Moscow"
+moscow_tz = pytz.timezone(TIMEZONE)
 
 load_dotenv(ENV_PATH)
 
