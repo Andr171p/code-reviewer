@@ -14,11 +14,10 @@ class AgentMode(StrEnum):
     """Режимы работы ИИ агента.
 
     Attributes:
-        DEFAULT: Стандартный режим (поддерживает QA, tools calling, mcp)
+        REVIEWER: Стандартный режим (поддерживает QA, tools calling, mcp)
         RESEARCHER: Режим для задач требующих проведения исследования.
         REASONER: Для сложных задач требующих рассуждений и планирования.
     """
-    DEFAULT = "default"
     REVIEWER = "reviewer"
     RESEARCHER = "researcher"
     REASONER = "reasoner"
