@@ -1,6 +1,8 @@
 from typing import Any
 
-from ..base import BaseTextSplitter, BaseChunk
+from langchain_text_splitters import TextSplitter
+
+from ..base import BaseChunk
 from .constants import BSL_PATTERNS
 
 
@@ -20,8 +22,8 @@ class BSLChunk(BaseChunk):
         """
 
 
-class BSLCodeSplitter(BaseTextSplitter[BSLChunk]):
-    def split_text(self, text: str) -> list[BSLChunk]:
+class BSLCodeSplitter(TextSplitter):
+    def split_text(self, text: str) -> list[str]:
         chunks: list[BSLChunk] = []
         lines = text.split("\n")
         current_chunk: list[str] = []
@@ -81,4 +83,4 @@ class BSLCodeSplitter(BaseTextSplitter[BSLChunk]):
                     "end_line": len(lines)
                 }
             ))
-        return chunks
+        return [chunk.to_text() for chunk in chunks]

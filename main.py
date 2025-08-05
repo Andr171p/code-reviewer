@@ -1,11 +1,9 @@
-from src.code_reviewer.splitters import XMLMetadataSplitter
+from langchain_community.document_loaders import UnstructuredXMLLoader
 
+loader = UnstructuredXMLLoader(
+    "Информация.xml",
+)
 
-with open("Информация.xml", encoding="utf-8") as file:
-    text = file.read()
+docs = loader.load()
 
-splitter = XMLMetadataSplitter()
-
-chunks = splitter.split_text(text)
-
-print(chunks)
+print(docs)

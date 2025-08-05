@@ -55,3 +55,8 @@ class BaseVectorStore(ABC):
     @abstractmethod
     async def add_documents(self, document: list[Document], **kwargs) -> None:
         pass
+
+
+class BasePreprocessor(ABC):
+    @abstractmethod
+    async def preprocess(self, *args) -> list[Document]: pass
