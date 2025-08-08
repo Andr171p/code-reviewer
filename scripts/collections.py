@@ -1,53 +1,54 @@
-import logging
+from pathlib import Path
 
-import weaviate
-from weaviate.classes.config import Configure, Property, DataType
-from weaviate.exceptions import SchemaValidationError, UnexpectedStatusCodeError
+from langchain_pinecone import PineconeVectorStore
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_core.documents import Document
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from src.code_reviewer.settings import settings
+from src.code_reviewer.settings import settings, BASE_DIR
 
-logger = logging.getLogger(__name__)
+DIRECTORY = BASE_DIR / "assets" / "docs" / "its" / "dev_rules"
 
-client = weaviate.connect_to_custom(
-    http_host=settings.weaviate.http_host,
-    http_port=settings.weaviate.http_port,
-    http_secure=False,
-    grpc_host=settings.weaviate.grpc_host,
-    grpc_port=settings.weaviate.grpc_port,
-    grpc_secure=False,
+embeddings = HuggingFaceEmbeddings(
+    model_name="deepvk/USER-bge-m3",
+    model_kwargs={"device": "cpu"},
+    encode_kwargs={"normalize_embeddings": False}
 )
 
-client.is_ready()
+vectorstore = PineconeVectorStore(
+    embedding=embeddings,
+    pinecone_api_key=settings.pinecone.api_key,
+    index_name="1c-best-practice"
+)
 
+'''splitter = RecursiveCharacterTextSplitter(
+    chunk_size=600,
+    chunk_overlap=20,
+    length_function=len
+)
 
-def create_dev_collection() -> None:
-    try:
-        client.collections.create(
-            name="DevCollection",
-            description="Коллекция для хранения материалов для разработки на 1С",
-            vector_config=[
-                Configure.Vectors.self_provided(
-                    name="content",
-                    vector_index_config=Configure.VectorIndex.hnsw()
-                )
-            ],
-            properties=[
-                Property(
-                    name="content",
-                    description="Часть кода",
-                    data_type=DataType.TEXT
-                )
-            ]
+files = Path(DIRECTORY).glob("**/*.txt")
+
+for file in files:
+    content = file.read_text(encoding="utf-8")
+    print(f"Count of chars in {file.name}")
+    print(len(content))
+    documents = splitter.split_documents([
+        Document(
+            page_content=content,
+            metadata={"filename": file.name, "source": "https://1c.its.ru"},
         )
-    except (SchemaValidationError, UnexpectedStatusCodeError):
-        logger.exception("Error creating code collection: {e}")
+    ])
+    print(f"Split documents")
+    print(len(documents))
+    vectorstore.add_documents(documents)
+    print("Successfully add documents")'''
 
 
-def main() -> None:
-    create_dev_collection()
-    client.close()
+query = "Какая правильная структура модуля"
 
+docs = vectorstore.similarity_search(query=query, k=7)
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    main()
+for doc in docs:
+    print(75 * "=")
+    print(doc)

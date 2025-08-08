@@ -1,9 +1,11 @@
-from langchain_community.document_loaders import UnstructuredXMLLoader
+from src.code_reviewer.splitters import BSLCodeSplitter
 
-loader = UnstructuredXMLLoader(
-    "Информация.xml",
-)
+splitter = BSLCodeSplitter()
 
-docs = loader.load()
+with open("Информация.os", encoding="utf-8") as file:
+    text = file.read()
+    print(text)
+
+docs = splitter.split_text(text)
 
 print(docs)
