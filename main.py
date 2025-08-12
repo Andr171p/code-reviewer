@@ -1,11 +1,22 @@
-from src.code_reviewer.splitters import BSLCodeSplitter
+import asyncio
 
-splitter = BSLCodeSplitter()
+from langchain_core.runnables import RunnableConfig
+from langgraph.graph.state import CompiledStateGraph
+from langgraph.graph.message import MessagesState
 
-with open("Информация.os", encoding="utf-8") as file:
-    text = file.read()
-    print(text)
+from src.code_reviewer.dependencies import container
 
-docs = splitter.split_text(text)
 
-print(docs)
+async def main() -> None:
+    agent = await container.get(CompiledStateGraph[MessagesState])
+    config = RunnableConfig(configurable={"thread_id": str(123)})
+    while True:
+        query = input("[User]: ")
+        inputs = {"messages": [{"role": "human", "content": query}]}
+        async for chunk in agent.astream(inputs, config=config):
+            print(chunk)
+            print("\n\n")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

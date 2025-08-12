@@ -4,8 +4,7 @@ from aiogram.types import Message
 from dishka.integrations.aiogram import FromDishka as Depends
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph.state import CompiledStateGraph
-
-from ..agent.states import AgentState
+from langgraph.graph.message import MessagesState
 
 router = Router(name=__name__)
 
@@ -17,9 +16,9 @@ async def start(message: Message) -> None:
 
 @router.message(F.text)
 async def chat(
-    message: Message, agent: Depends[CompiledStateGraph[AgentState]]
+    message: Message, agent: Depends[CompiledStateGraph[MessagesState]]
 ) -> None:
-    config = RunnableConfig({"configurable": {"thread_id": str(message.from_user.id)}})
+    config = RunnableConfig(configurable={"thread_id": str(message.from_user.id)})
     inputs = {"messages": [{"role": "human", "content": message.text}]}
     response = await agent.ainvoke(inputs, config=config)
     last_message = response["messages"][-1]

@@ -3,21 +3,20 @@ from collections.abc import AsyncIterable
 from dishka import Provider, Scope, from_context, make_async_container, provide
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
-from langchain_core.vectorstores import VectorStore
 from langchain_gigachat import GigaChat
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_pinecone import PineconeVectorStore
 from langgraph.checkpoint.redis import AsyncRedisSaver
 from langgraph.graph.state import CompiledStateGraph
+from langgraph.graph.message import MessagesState
+from langgraph.prebuilt import create_react_agent
 
-from .agent.nodes import ReviewerNode
-from .agent.states import AgentState
-from .agent.workflow import build_graph
+from .agent.prompts import AGENT_PROMPT
+from .agent.tools import QuerySearchTool
 from .settings import Settings, settings
 
 
 class AppProvider(Provider):
-    app_settings = from_context(provides=settings, scope=Scope.APP)
+    app_settings = from_context(provides=Settings, scope=Scope.APP)
 
     @provide(scope=Scope.APP)
     def get_embeddings(self, app_settings: Settings) -> Embeddings:  # noqa: PLR6301
@@ -28,13 +27,11 @@ class AppProvider(Provider):
         )
 
     @provide(scope=Scope.APP)
-    def get_vectorstore(  # noqa: PLR6301
-        self, app_settings: Settings, embeddings: Embeddings
-    ) -> VectorStore:
-        return PineconeVectorStore(
-            embedding=embeddings,
-            pinecone_api_key=app_settings.pinecone.api_key,
-            index_name="1c-best-practice",
+    def get_query_search_tool(
+            self, app_settings: Settings, embeddings: Embeddings
+    ) -> QuerySearchTool:
+        return QuerySearchTool.from_pinecone(
+            embeddings=embeddings, pinecone_api_key=app_settings.pinecone.api_key
         )
 
     @provide(scope=Scope.APP)
@@ -42,18 +39,23 @@ class AppProvider(Provider):
         return GigaChat(
             credentials=app_settings.gigachat.api_key,
             scope=app_settings.gigachat.scope,
-            model=app_settings.gigachat.model,
+            model=app_settings.gigachat.model_name,
             verify_ssl_certs=False,
             profanity_check=False,
         )
 
     @provide(scope=Scope.APP)
     async def get_agent(  # noqa: PLR6301
-        self, app_settings: Settings, vectorstore: VectorStore, model: BaseChatModel
-    ) -> AsyncIterable[CompiledStateGraph[AgentState]]:
+        self,
+            app_settings: Settings,
+            query_search_tool: QuerySearchTool,
+            model: BaseChatModel
+    ) -> AsyncIterable[CompiledStateGraph[MessagesState]]:
         async with AsyncRedisSaver(redis_url=app_settings.redis.url) as checkpointer:
-            yield build_graph(
-                reviewer=ReviewerNode(vectorstore=vectorstore, model=model),
+            yield create_react_agent(
+                tools=[query_search_tool],
+                prompt=AGENT_PROMPT,
+                model=model,
                 checkpointer=checkpointer,
             )
 
