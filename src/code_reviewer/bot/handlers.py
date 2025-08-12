@@ -11,15 +11,18 @@ router = Router(name=__name__)
 
 @router.message(CommandStart())
 async def start(message: Message) -> None:
-    await message.answer("...")
+    await message.answer("Бот запущен")
 
 
 @router.message(F.text)
 async def chat(
     message: Message, agent: Depends[CompiledStateGraph[MessagesState]]
 ) -> None:
-    config = RunnableConfig(configurable={"thread_id": str(message.from_user.id)})
+    config = RunnableConfig(configurable={"thread_id": str(1234567890)})
     inputs = {"messages": [{"role": "human", "content": message.text}]}
     response = await agent.ainvoke(inputs, config=config)
     last_message = response["messages"][-1]
     await message.answer(last_message.content)
+
+
+# https://github.com/BlizD/Tasks/blob/develope/src/cf/BusinessProcesses/%D0%97%D0%B0%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5/Ext/ObjectModule.bsl

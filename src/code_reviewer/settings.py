@@ -13,6 +13,12 @@ moscow_tz = pytz.timezone(TIMEZONE)
 load_dotenv(ENV_PATH)
 
 
+class BotSettings(BaseSettings):
+    token: str = ""
+
+    model_config = SettingsConfigDict(env_prefix="BOT_")
+
+
 class EmbeddingsSettings(BaseModel):
     model_name: str = "deepvk/USER-bge-m3"
     model_kwargs: dict[str, str] = {"device": "cpu"}
@@ -71,6 +77,7 @@ class GigaChatSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
+    bot: BotSettings = BotSettings()
     embeddings: EmbeddingsSettings = EmbeddingsSettings()
     weaviate: WeaviateSettings = WeaviateSettings()
     pinecone: PineconeSettings = PineconeSettings()

@@ -1,13 +1,16 @@
 from collections.abc import AsyncIterable
 
+from aiogram import Bot
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums.parse_mode import ParseMode
 from dishka import Provider, Scope, from_context, make_async_container, provide
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
 from langchain_gigachat import GigaChat
 from langchain_huggingface import HuggingFaceEmbeddings
 from langgraph.checkpoint.redis import AsyncRedisSaver
-from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph.message import MessagesState
+from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import create_react_agent
 
 from .agent.prompts import AGENT_PROMPT
@@ -24,6 +27,13 @@ class AppProvider(Provider):
             model_name=app_settings.embeddings.model_name,
             model_kwargs=app_settings.embeddings.model_kwargs,
             encode_kwargs=app_settings.embeddings.encode_kwargs,
+        )
+
+    @provide(scope=Scope.APP)
+    def get_bot(self, config: Settings) -> Bot:
+        return Bot(
+            token=config.bot.token,
+            default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN),
         )
 
     @provide(scope=Scope.APP)

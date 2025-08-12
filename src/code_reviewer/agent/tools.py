@@ -18,16 +18,19 @@ TOP_N = 7
 class SearchInput(BaseModel):
     query: str = Field(..., description="Запрос для поиска")
     index_name: str = Field(
-        ..., description="Название индекса в котором нужно выполнить поиск"
+        ..., description="""Название целевого индекса для поиска:
+         * '1c-best-practice' - индекс для поиска лучших практик разработки.
+         * '1c-problems' - индекс для поиска решений алгоритмических задач.
+        """
     )
     top_n: int = Field(
-        default=TOP_N, description="Количество извлекаемых элементов"
+        default=TOP_N, description="Количество извлекаемых документов (по умолчанию 7)"
     )
 
 
 class QuerySearchTool(BaseTool):
     name: str = "QuerySearch"
-    description: str = """Инструмент для векторного поиска.
+    description: str = """Инструмент для поиска по базе знаний
     """
     args_schema: ArgsSchema | None = SearchInput
     embeddings: Embeddings | None = None
@@ -47,7 +50,7 @@ class QuerySearchTool(BaseTool):
     async def _arun(
             self, query: str, index_name: str, top_n: int = TOP_N
     ) -> str:
-        logger.info("---SEARCH FROM %s---", self.index_name.upper())
+        logger.info("---SEARCH FROM %s---", index_name.upper())
         vectorstore = PineconeVectorStore(
             embedding=self.embeddings,
             index_name=index_name,

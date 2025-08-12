@@ -2,9 +2,11 @@ from typing import TypeVar
 
 from langchain_core.documents import Document
 from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import BaseMessage
 from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import Runnable
+from langchain_core.runnables import Runnable, RunnableSerializable
+from langchain_core.retrievers import BaseRetriever
 from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
@@ -45,5 +47,12 @@ def create_llm_chain(prompt: str, llm: BaseChatModel) -> Runnable[dict[str, str]
     return ChatPromptTemplate.from_template(prompt) | llm | StrOutputParser()
 
 
+def create_rag_chain(
+        retriever: BaseRetriever, prompt: str, llm: BaseChatModel
+) -> RunnableSerializable[str, BaseMessage]:
+    return retriever | ChatPromptTemplate.from_template(prompt) | llm
+
+
 def format_documents(documents: list[Document]) -> str:
     return "\n\n".join([document.page_content for document in documents])
+
