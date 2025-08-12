@@ -1,7 +1,5 @@
 __all__ = (
-    "RedisMemoryStore",
-    "LongTermMemoryManagementToolkit",
+    "RedisLongTermMemory",
 )
 
-from .storage import RedisMemoryStore
-from .toolkit import LongTermMemoryManagementToolkit
+from .storage import RedisLongTermMemory

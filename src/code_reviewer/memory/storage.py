@@ -12,7 +12,7 @@ from redisvl.schema import IndexSchema
 from sentence_transformers import SentenceTransformer
 from ulid import ULID
 
-from ..base import BaseMemoryStore
+from ..schemas import Memory, MemoryType
 from .constants import (
     DEFAULT_USER_ID,
     DIALECT,
@@ -22,12 +22,11 @@ from .constants import (
     MOSCOW_TZ,
     NUM_RESULTS,
 )
-from ..schemas import MemoryType, Memory
 
 logger = logging.getLogger(__name__)
 
 
-class RedisMemoryStore(BaseMemoryStore):
+class RedisLongTermMemory:
     def __init__(self, client: AsyncRedis, vectorizer: SentenceTransformer) -> None:
         self.client = client
         self.vectorizer = vectorizer
@@ -36,9 +35,7 @@ class RedisMemoryStore(BaseMemoryStore):
     def _get_or_create_index(self) -> AsyncSearchIndex:
         try:
             memory_index = AsyncSearchIndex(
-                schema=self.schema,
-                redis_client=self.client,
-                validate_on_load=True
+                schema=self.schema, redis_client=self.client, validate_on_load=True
             )
             memory_index.create(overwrite=False)
         except SchemaValidationError:
@@ -47,15 +44,12 @@ class RedisMemoryStore(BaseMemoryStore):
             return memory_index
 
     async def similar_memory_exists(
-            self, memory: Memory, distance_threshold: float = DISTANCE_THRESHOLD
+        self, memory: Memory, distance_threshold: float = DISTANCE_THRESHOLD
     ) -> bool:
         memory_index = self._get_or_create_index()
-        filters = (
-                (Tag("user_id") == memory.user_id) &
-                (Tag("memory_type") == memory.memory_type)
-        )
+        filters = (Tag("user_id") == memory.user_id) & (Tag("memory_type") == memory.memory_type)
         if memory.thread_id:
-            filters &= (Tag("thread_id") == memory.thread_id)
+            filters &= Tag("thread_id") == memory.thread_id
         content_vector = self.vectorizer.embed(memory.content)
         vector_query = VectorRangeQuery(
             vector=content_vector,
@@ -63,7 +57,7 @@ class RedisMemoryStore(BaseMemoryStore):
             vector_field_name="embedding",
             filter_expression=filters,
             distance_threshold=distance_threshold,
-            return_fields=["id"]
+            return_fields=["id"],
         )
         results = await memory_index.query(vector_query)
         return bool(results)
@@ -90,11 +84,11 @@ class RedisMemoryStore(BaseMemoryStore):
             logger.exception("Error storing memory: {e}")
 
     async def retrieve_memories(
-            self,
-            query: str,
-            distance_threshold: float = DISTANCE_THRESHOLD,
-            limit: int = LIMIT,
-            **kwargs
+        self,
+        query: str,
+        distance_threshold: float = DISTANCE_THRESHOLD,
+        limit: int = LIMIT,
+        **kwargs,
     ) -> list[Memory]:
         user_id: str = kwargs.get("user_id", DEFAULT_USER_ID)
         thread_id: str | None = kwargs.get("thread_id")
@@ -120,7 +114,7 @@ class RedisMemoryStore(BaseMemoryStore):
         base_filter = [f"@user_id:{{{user_id}}}"]
         if memory_type:
             if isinstance(memory_type, list):
-                base_filter.append(f"@memory_type:{{{"|".join(memory_type)}}}")
+                base_filter.append(f"@memory_type:{{{'|'.join(memory_type)}}}")
             else:
                 base_filter.append(f"@memory_type:{{{memory_type.value}}}")
         if thread_id:

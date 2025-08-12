@@ -1,7 +1,8 @@
 from pathlib import Path
-import pytz
 
+import pytz
 from dotenv import load_dotenv
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -10,6 +11,12 @@ TIMEZONE = "Europe/Moscow"
 moscow_tz = pytz.timezone(TIMEZONE)
 
 load_dotenv(ENV_PATH)
+
+
+class EmbeddingsSettings(BaseModel):
+    model_name: str = "deepvk/USER-bge-m3"
+    model_kwargs: dict[str, str] = {"device": "cpu"}
+    encode_kwargs: dict[str, bool] = {"normalize_embeddings": False}
 
 
 class WeaviateSettings(BaseSettings):
@@ -64,6 +71,7 @@ class GigaChatSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
+    embeddings: EmbeddingsSettings = EmbeddingsSettings()
     weaviate: WeaviateSettings = WeaviateSettings()
     pinecone: PineconeSettings = PineconeSettings()
     redis: RedisSettings = RedisSettings()

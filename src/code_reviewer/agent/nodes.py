@@ -1,25 +1,26 @@
 from typing import Any
 
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import BaseTool
-from langgraph.types import Command
+from langchain_core.vectorstores import VectorStore
 from langgraph.prebuilt import create_react_agent
 
-from .constants import ROUTING
+from .prompts import REVIEWER_PROMPT
 from .states import AgentState
+from .tools import ITSSearchTool
 
 logger = logging.getLogger(__name__)
 
 
 class BaseNode(ABC):
     """Базовый класс для реализации вершины графа"""
+
     @abstractmethod
     async def __call__(
-            self, state: dict[str, Any], config: RunnableConfig | None = None
+        self, state: dict[str, Any], config: RunnableConfig | None = None
     ) -> dict[str, Any]:
         """Выполняет логику заданную в вершине (узле) графа.
 
@@ -30,26 +31,19 @@ class BaseNode(ABC):
         raise NotImplementedError
 
 
-def route_node(state: AgentState) -> Command[str]:
-    """Направляет к заданному агенту"""
-    node = ROUTING[state["mode"]]
-    logger.info("---ROUTE TO %s NODE---", node)
-    return Command(goto=node)
-
-
-class ReActAgentNode(BaseNode):
-    def __init__(
-            self, model: BaseChatModel, prompt: str, tools: list[BaseTool]
-    ) -> None:
-        self.react_agent = create_react_agent(
-            model=model, prompt=prompt, tools=tools
+class ReviewerNode(BaseNode):
+    def __init__(self, vectorstore: VectorStore, model: BaseChatModel) -> None:
+        self.agent = create_react_agent(
+            tools=[ITSSearchTool.from_vectorstore(vectorstore)],
+            prompt=REVIEWER_PROMPT,
+            model=model,
         )
 
     async def __call__(
-            self, state: AgentState, config: RunnableConfig | None = None
-    ) -> dict[str, Any]:
-        logger.info("---CALL REACT AGENT---")
-        response = await self.react_agent.ainvoke(
-            input={"messages": state["messages"]}, config=config
-        )
-        return {"messages": response["messages"][-1]}
+        self, state: AgentState, config: RunnableConfig | None = None  # noqa: ARG002
+    ) -> AgentState:
+        logger.info("---ASK REVIEWER---")
+        last_message = state["messages"][-1]
+        inputs = {"messages": [{"role": "human", "content": last_message.content}]}
+        response = await self.agent.ainvoke(inputs)
+        return {"messages": [response["messages"][-1]]}

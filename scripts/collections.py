@@ -1,27 +1,21 @@
-from pathlib import Path
-
-from langchain_pinecone import PineconeVectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_core.documents import Document
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_pinecone import PineconeVectorStore
 
-from src.code_reviewer.settings import settings, BASE_DIR
+from src.code_reviewer.settings import BASE_DIR, settings
 
 DIRECTORY = BASE_DIR / "assets" / "docs" / "its" / "dev_rules"
 
 embeddings = HuggingFaceEmbeddings(
     model_name="deepvk/USER-bge-m3",
     model_kwargs={"device": "cpu"},
-    encode_kwargs={"normalize_embeddings": False}
+    encode_kwargs={"normalize_embeddings": False},
 )
 
 vectorstore = PineconeVectorStore(
-    embedding=embeddings,
-    pinecone_api_key=settings.pinecone.api_key,
-    index_name="1c-best-practice"
+    embedding=embeddings, pinecone_api_key=settings.pinecone.api_key, index_name="1c-best-practice"
 )
 
-'''splitter = RecursiveCharacterTextSplitter(
+"""splitter = RecursiveCharacterTextSplitter(
     chunk_size=600,
     chunk_overlap=20,
     length_function=len
@@ -42,7 +36,7 @@ for file in files:
     print(f"Split documents")
     print(len(documents))
     vectorstore.add_documents(documents)
-    print("Successfully add documents")'''
+    print("Successfully add documents")"""
 
 
 query = "Какая правильная структура модуля"

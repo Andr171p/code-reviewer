@@ -3,8 +3,6 @@ from typing import Any, TypeVar
 import asyncio
 from collections.abc import Coroutine
 
-from .schemas import Document
-
 T = TypeVar("T")
 
 
@@ -17,8 +15,3 @@ def run_async[T](coroutine: Coroutine[Any, Any, T]) -> T:
     """
     event_loop = asyncio.get_event_loop()
     return event_loop.run_until_complete(coroutine)
-
-
-def format_documents(documents: list[Document]) -> str:
-    """Приводит документы к удобному текстовому формату"""
-    return "\n\n".join([document.content for document in documents])

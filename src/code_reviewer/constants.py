@@ -1,6 +1,6 @@
 
 # Размерность вектора
-EMBEDDINGS_DIMENSION = 2048
+EMBEDDINGS_DIMENSION = 1024
 
 # Github API URL
 GITHUB_API_BASE_URL = "https://api.github.com"
