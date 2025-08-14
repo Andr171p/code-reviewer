@@ -9,12 +9,12 @@ from langchain_core.language_models import BaseChatModel
 from langchain_gigachat import GigaChat
 from langchain_huggingface import HuggingFaceEmbeddings
 from langgraph.checkpoint.redis import AsyncRedisSaver
-from langgraph.graph.message import MessagesState
-from langgraph.graph.state import CompiledStateGraph
-from langgraph.prebuilt import create_react_agent
+from langchain_core.vectorstores import VectorStore
+from langchain_pinecone import PineconeVectorStore
 
-from .agent.prompts import AGENT_PROMPT
-from .agent.tools import QuerySearchTool
+from .agent.workflow import Agent, build_graph
+from .agent.nodes import DeveloperNode
+from .constants import TOP_N
 from .settings import Settings, settings
 
 
@@ -37,14 +37,6 @@ class AppProvider(Provider):
         )
 
     @provide(scope=Scope.APP)
-    def get_query_search_tool(
-            self, app_settings: Settings, embeddings: Embeddings
-    ) -> QuerySearchTool:
-        return QuerySearchTool.from_pinecone(
-            embeddings=embeddings, pinecone_api_key=app_settings.pinecone.api_key
-        )
-
-    @provide(scope=Scope.APP)
     def get_model(self, app_settings: Settings) -> BaseChatModel:  # noqa: PLR6301
         return GigaChat(
             credentials=app_settings.gigachat.api_key,
@@ -55,19 +47,35 @@ class AppProvider(Provider):
         )
 
     @provide(scope=Scope.APP)
+    def get_vectorstore(self, app_settings: Settings, embeddings: Embeddings) -> VectorStore:
+        return PineconeVectorStore(
+            embedding=embeddings,
+            index_name="1c-best-practice",
+            pinecone_api_key=app_settings.pinecone.api_key,
+        )
+
+    @provide(scope=Scope.APP)
+    def get_developer_node(
+            self, vectorstore: VectorStore, model: BaseChatModel
+    ) -> DeveloperNode:
+        return DeveloperNode(
+            retriever=vectorstore.as_retriever(k=TOP_N), model=model
+        )
+
+    @provide(scope=Scope.APP)
     async def get_agent(  # noqa: PLR6301
         self,
             app_settings: Settings,
-            query_search_tool: QuerySearchTool,
-            model: BaseChatModel
-    ) -> AsyncIterable[CompiledStateGraph[MessagesState]]:
-        async with AsyncRedisSaver(redis_url=app_settings.redis.url) as checkpointer:
-            yield create_react_agent(
-                tools=[query_search_tool],
-                prompt=AGENT_PROMPT,
-                model=model,
-                checkpointer=checkpointer,
-            )
+            developer_node: DeveloperNode,
+    ) -> AsyncIterable[Agent]:
+        ttl_config: dict[str, int | bool] = {
+            "default_ttl": 60,  # Default TTL in minutes
+            "refresh_on_read": True,  # Refresh TTL when checkpoint is read
+        }
+        async with AsyncRedisSaver(
+                redis_url=app_settings.redis.url, ttl=ttl_config
+        ) as checkpointer:
+            yield build_graph(developer_node, checkpointer=checkpointer)
 
 
 container = make_async_container(AppProvider(), context={Settings: settings})

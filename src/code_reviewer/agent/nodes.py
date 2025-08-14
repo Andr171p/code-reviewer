@@ -54,3 +54,22 @@ class RoutingNode(BaseNode):
         routing_result = await self.chain.ainvoke({"query": last_message.content})
         logger.info("---ROUTE TO %s---", routing_result.node)
         return Command(goto=routing_result.node)
+
+
+class DeveloperNode(BaseNode):
+    def __init__(
+            self, retriever: BaseRetriever, model: BaseChatModel
+    ) -> None:
+        self.rag_chain = create_rag_chain(
+            retriever=retriever,
+            prompt=DEVELOPER_PROMPT,
+            llm=model
+        )
+
+    async def __call__(
+            self, state: AgentState, config: RunnableConfig | None = None
+    ) -> AgentState:
+        logger.info("---CALL DEVELOPER---")
+        last_message = state["messages"][-1]
+        message = await self.rag_chain.ainvoke(last_message.content)
+        return {"messages": [message]}
