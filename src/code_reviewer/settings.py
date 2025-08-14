@@ -19,6 +19,12 @@ class BotSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="BOT_")
 
 
+class GitHubSettings(BaseSettings):
+    access_token: str = ""
+
+    model_config = SettingsConfigDict(env_prefix="GITHUB_")
+
+
 class EmbeddingsSettings(BaseModel):
     model_name: str = "deepvk/USER-bge-m3"
     model_kwargs: dict[str, str] = {"device": "cpu"}
@@ -78,6 +84,7 @@ class GigaChatSettings(BaseSettings):
 
 class Settings(BaseSettings):
     bot: BotSettings = BotSettings()
+    github: GitHubSettings = GitHubSettings()
     embeddings: EmbeddingsSettings = EmbeddingsSettings()
     weaviate: WeaviateSettings = WeaviateSettings()
     pinecone: PineconeSettings = PineconeSettings()

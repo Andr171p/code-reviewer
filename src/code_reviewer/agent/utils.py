@@ -6,8 +6,10 @@ from langchain_core.messages import BaseMessage
 from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import Runnable, RunnableSerializable, RunnablePassthrough
-from langchain_core.retrievers import BaseRetriever
+from langchain_core.vectorstores import VectorStore
 from pydantic import BaseModel
+
+from ..constants import TOP_N
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -48,10 +50,13 @@ def create_llm_chain(prompt: str, llm: BaseChatModel) -> Runnable[dict[str, str]
 
 
 def create_rag_chain(
-        retriever: BaseRetriever, prompt: str, llm: BaseChatModel
+        vectorstore: VectorStore, prompt: str, llm: BaseChatModel
 ) -> RunnableSerializable[str, BaseMessage]:
     return (
-            {"context": retriever | format_documents, "query": RunnablePassthrough()}
+            {
+                "context": vectorstore.as_retriever(k=TOP_N) | format_documents,
+                "query": RunnablePassthrough()
+            }
             | ChatPromptTemplate.from_template(prompt)
             | llm
     )
@@ -59,4 +64,3 @@ def create_rag_chain(
 
 def format_documents(documents: list[Document]) -> str:
     return "\n\n".join([document.page_content for document in documents])
-
