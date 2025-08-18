@@ -13,3 +13,8 @@ NUM_RESULTS = 1
 LIMIT = 5
 DEFAULT_USER_ID = "system"
 MOSCOW_TZ = "Europe/Moscow"
+
+TTL_CONFIG: dict[str, int | bool] = {
+    "default_ttl": 60,  # Default TTL in minutes
+    "refresh_on_read": True,  # Refresh TTL when checkpoint is read
+}

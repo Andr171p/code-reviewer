@@ -12,9 +12,8 @@ from langgraph.checkpoint.redis import AsyncRedisSaver
 from langchain_core.vectorstores import VectorStore
 from langchain_pinecone import PineconeVectorStore
 
-from .agent.workflow import Agent, build_graph
-from .agent.nodes import DeveloperNode
-from .constants import TOP_N
+from .agent.workflow import Agent, DeveloperAgent, create_agent, create_developer_agent
+from .constants import TTL_CONFIG
 from .settings import Settings, settings
 
 
@@ -50,32 +49,24 @@ class AppProvider(Provider):
     def get_vectorstore(self, app_settings: Settings, embeddings: Embeddings) -> VectorStore:
         return PineconeVectorStore(
             embedding=embeddings,
-            index_name="1c-best-practice",
+            index_name="1c-code",
             pinecone_api_key=app_settings.pinecone.api_key,
         )
 
     @provide(scope=Scope.APP)
-    def get_developer_node(
-            self, vectorstore: VectorStore, model: BaseChatModel
-    ) -> DeveloperNode:
-        return DeveloperNode(
-            retriever=vectorstore.as_retriever(k=TOP_N), model=model
-        )
+    def get_developer_agent(self) -> DeveloperAgent:
+        return create_developer_agent()
 
     @provide(scope=Scope.APP)
     async def get_agent(  # noqa: PLR6301
-        self,
+            self,
             app_settings: Settings,
-            developer_node: DeveloperNode,
+            developer_agent: DeveloperAgent,
     ) -> AsyncIterable[Agent]:
-        ttl_config: dict[str, int | bool] = {
-            "default_ttl": 60,  # Default TTL in minutes
-            "refresh_on_read": True,  # Refresh TTL when checkpoint is read
-        }
         async with AsyncRedisSaver(
-                redis_url=app_settings.redis.url, ttl=ttl_config
+                redis_url=app_settings.redis.url, ttl=TTL_CONFIG
         ) as checkpointer:
-            yield build_graph(developer_node, checkpointer=checkpointer)
+            yield create_agent(developer_agent, checkpointer=checkpointer)
 
 
 container = make_async_container(AppProvider(), context={Settings: settings})

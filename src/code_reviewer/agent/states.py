@@ -14,7 +14,7 @@ class AgentState(TypedDict):
 
 class DeveloperState(TypedDict):
     """Состояние агента 1С разработчика для генерации кода"""
-    user_query: str      # Запрос пользователя
-    hyde_code: str       # Гипотетический код
-    searched_documents: list[Document]
-    generated_code: str  # Сгенерированный код
+    query: str
+    hypothetical_code: str
+    search_result: list[Document]
+    generated_code: str

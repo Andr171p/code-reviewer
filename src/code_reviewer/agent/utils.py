@@ -1,11 +1,13 @@
 from typing import TypeVar
 
+from collections.abc import Sequence
+
 from langchain_core.documents import Document
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_core.output_parsers import PydanticOutputParser, StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import Runnable, RunnableSerializable, RunnablePassthrough
+from langchain_core.runnables import Runnable, RunnablePassthrough, RunnableSerializable
 from langchain_core.vectorstores import VectorStore
 from pydantic import BaseModel
 
@@ -14,53 +16,41 @@ from ..constants import TOP_N
 T = TypeVar("T", bound=BaseModel)
 
 
-def create_llm_chain_with_structured_output[T](
-    output_schema: type[T],
+def create_chain_with_structured_output[T](
+    output_type: type[T],
     llm: BaseChatModel,
     prompt: str,
 ) -> Runnable[dict[str, str], T]:
-    """Creating chain of callings with structured pydantic output.
-
-    Args:
-        output_schema (type[T]): Type of excepted chain output pydantic schema.
-        llm (BaseChatModel): LLM for calling.
-        prompt (str): Prompt template with instructions for LLM, required `format_instructions` value.
-
-    Returns:
-        Runnable[dict[str, str], T]: Built chain.
-    """  # noqa: E501
-    parser = PydanticOutputParser(pydantic_object=output_schema)
+    parser = PydanticOutputParser(pydantic_object=output_type)
     prompt = ChatPromptTemplate.from_messages([("system", prompt)]).partial(
         format_instructions=parser.get_format_instructions(),
     )
     return prompt | llm | parser
 
 
-def create_llm_chain(prompt: str, llm: BaseChatModel) -> Runnable[dict[str, str], str]:
-    """Creating simple LLM chain.
-
-    Args:
-        prompt (str): Prompt template for giving instructions to model.
-        llm (BaseChatModel): Model for calling.
-
-    Returns:
-        Runnable[dict[str, str], str]: Built chain.
-    """
-    return ChatPromptTemplate.from_template(prompt) | llm | StrOutputParser()
+def create_chain(prompt: str, llm: BaseChatModel) -> Runnable[dict[str, str], BaseMessage]:
+    return ChatPromptTemplate.from_template(prompt) | llm
 
 
 def create_rag_chain(
-        vectorstore: VectorStore, prompt: str, llm: BaseChatModel
+    vectorstore: VectorStore, prompt: str, llm: BaseChatModel
 ) -> RunnableSerializable[str, BaseMessage]:
     return (
-            {
-                "context": vectorstore.as_retriever(k=TOP_N) | format_documents,
-                "query": RunnablePassthrough()
-            }
-            | ChatPromptTemplate.from_template(prompt)
-            | llm
+        {
+            "context": vectorstore.as_retriever(k=TOP_N) | format_documents,
+            "query": RunnablePassthrough(),
+        }
+        | ChatPromptTemplate.from_template(prompt)
+        | llm
     )
 
 
 def format_documents(documents: list[Document]) -> str:
     return "\n\n".join([document.page_content for document in documents])
+
+
+def format_messages(messages: Sequence[BaseMessage]) -> str:
+    return "\n\n".join(
+        f"{'User' if isinstance(message, HumanMessage) else 'AI'}: {message.content}"
+        for message in messages
+    )

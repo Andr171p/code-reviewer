@@ -31,15 +31,6 @@ class EmbeddingsSettings(BaseModel):
     encode_kwargs: dict[str, bool] = {"normalize_embeddings": False}
 
 
-class WeaviateSettings(BaseSettings):
-    http_host: str = "localhost"
-    http_port: int = 8080
-    grpc_host: str = "localhost"
-    grpc_port: int = 50051
-
-    model_config = SettingsConfigDict(env_prefix="WEAVIATE_")
-
-
 class PineconeSettings(BaseSettings):
     api_key: str = ""
 
@@ -86,7 +77,6 @@ class Settings(BaseSettings):
     bot: BotSettings = BotSettings()
     github: GitHubSettings = GitHubSettings()
     embeddings: EmbeddingsSettings = EmbeddingsSettings()
-    weaviate: WeaviateSettings = WeaviateSettings()
     pinecone: PineconeSettings = PineconeSettings()
     redis: RedisSettings = RedisSettings()
     elastic: ElasticSettings = ElasticSettings()
