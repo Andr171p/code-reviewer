@@ -1,7 +1,6 @@
 from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
-from markdown import markdown
 
 from .agent import run_agent
 
@@ -15,5 +14,7 @@ async def start(message: Message) -> None:
 
 @router.message(F.text)
 async def chat(message: Message) -> None:
-    response = await run_agent(message.text)
+    response = await run_agent(
+        chat_id=str(message.from_user.id), user_prompt=message.text
+    )
     await message.answer(response)

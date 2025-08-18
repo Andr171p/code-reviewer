@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Callable
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 
 from langchain_core.language_models import BaseChatModel
@@ -24,7 +24,9 @@ from .utils import (
     create_chain_with_structured_output,
     create_rag_chain,
     format_documents,
+    format_messages
 )
+from .memory import RedisChatHistory
 from .dependencies import container
 from .constants import TOP_N
 
@@ -34,7 +36,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class State:
     """Состояние графа"""
-    messages: list[BaseMessage] = field(default_factory=list)
+    messages: list[BaseMessage]
 
 
 @dataclass
@@ -60,24 +62,24 @@ class Routing(BaseModel):
 class RoutingNode(BaseNode[State, Dependencies]):
     async def run(
             self, ctx: GraphRunContext[State, Dependencies]
-    ) -> WritingCodeNode | CodeReviewNode | DocsAnswerNode:
+    ) -> WritingCodeNode | CodeReviewNode | AskAssistantNode:
         chain = create_chain_with_structured_output(
             output_type=Routing,
             prompt=ROUTE_PROMPT,
             llm=ctx.deps.llm,
         )
-        user_prompt = ctx.state.messages[-1].content
+        user_prompt = format_messages(ctx.state.messages)
         routing = await chain.ainvoke({"query": user_prompt})
         logger.info("Route to %s", routing.next_node)
         if routing.next_node == NextNode.DEVELOPER:
             return WritingCodeNode(user_prompt)
         if routing.next_node == NextNode.CODE_REVIEW:
             return CodeReviewNode(user_prompt)
-        return DocsAnswerNode(user_prompt)
+        return AskAssistantNode(user_prompt)
 
 
 @dataclass
-class DocsAnswerNode(BaseNode[State, Dependencies]):
+class AskAssistantNode(BaseNode[State, Dependencies]):
     user_prompt: str
 
     async def run(
@@ -89,8 +91,8 @@ class DocsAnswerNode(BaseNode[State, Dependencies]):
             prompt=ASSISTANT_PROMPT,
             llm=ctx.deps.llm,
         )
-        assistant_message = await assistant_chain.ainvoke(self.user_prompt)
-        ctx.state.messages.append(assistant_message)
+        ai_message = await assistant_chain.ainvoke(self.user_prompt)
+        ctx.state.messages.append(ai_message)
         return End(None)
 
 
@@ -138,11 +140,18 @@ class WritingCodeNode(BaseNode[State, Dependencies]):
         return End(None)
 
 
-async def run_agent(user_prompt: str) -> str:
+async def run_agent(chat_id: str, user_prompt: str) -> str:
     vectorstore_factory = await container.get(Callable[[str], VectorStore])
     llm = await container.get(BaseChatModel)
-    state = State(messages=[HumanMessage(content=user_prompt)])
+    chat_history = await container.get(RedisChatHistory)
+    messages = await chat_history.get_messages(chat_id)
+    messages.append(HumanMessage(content=user_prompt))
+    print(f"Redis messages: {messages}")
+    state = State(messages=messages)
+    print(state)
     deps = Dependencies(vectorstore_factory=vectorstore_factory, llm=llm)
-    graph = Graph(nodes=(RoutingNode, CodeReviewNode, WritingCodeNode, DocsAnswerNode))
+    graph = Graph(nodes=(RoutingNode, CodeReviewNode, WritingCodeNode, AskAssistantNode))
     result = await graph.run(RoutingNode(), state=state, deps=deps)
-    return result.state.messages[-1].content
+    ai_message = result.state.messages[-1]
+    await chat_history.add_messages(chat_id, [ai_message])
+    return ai_message.content

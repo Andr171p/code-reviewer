@@ -10,7 +10,9 @@ from langchain_gigachat import GigaChat
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.vectorstores import VectorStore
 from langchain_pinecone import PineconeVectorStore
+from redis.asyncio import Redis as AsyncRedis
 
+from .memory import RedisChatHistory
 from .settings import Settings, settings
 
 
@@ -33,6 +35,10 @@ class AppProvider(Provider):
         )
 
     @provide(scope=Scope.APP)
+    def get_redis(self, app_settings: Settings) -> AsyncRedis:
+        return AsyncRedis.from_url(app_settings.redis.url)
+
+    @provide(scope=Scope.APP)
     def get_llm(self, app_settings: Settings) -> BaseChatModel:  # noqa: PLR6301
         return GigaChat(
             credentials=app_settings.gigachat.api_key,
@@ -53,6 +59,10 @@ class AppProvider(Provider):
                 pinecone_api_key=app_settings.pinecone.api_key,
             )
         return vectorstore_factory
+
+    @provide(scope=Scope.APP)
+    def get_chat_history(self, redis: AsyncRedis) -> RedisChatHistory:
+        return RedisChatHistory(redis)
 
 
 container = make_async_container(AppProvider(), context={Settings: settings})
