@@ -37,23 +37,6 @@ class PineconeSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="PINECONE_")
 
 
-class ElasticSettings(BaseSettings):
-    host: str = "localhost"
-    port: int = 9200
-    username: str = "user"
-    password: str = "password"
-
-    model_config = SettingsConfigDict(env_prefix="ELASTIC_")
-
-    @property
-    def url(self) -> str:
-        return f"http://{self.host}:{self.port}"
-
-    @property
-    def auth(self) -> tuple[str, str]:
-        return self.username, self.password
-
-
 class RedisSettings(BaseSettings):
     host: str = "localhost"
     port: int = 6379
@@ -79,7 +62,6 @@ class Settings(BaseSettings):
     embeddings: EmbeddingsSettings = EmbeddingsSettings()
     pinecone: PineconeSettings = PineconeSettings()
     redis: RedisSettings = RedisSettings()
-    elastic: ElasticSettings = ElasticSettings()
     gigachat: GigaChatSettings = GigaChatSettings()
 
 

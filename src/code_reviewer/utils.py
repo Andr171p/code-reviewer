@@ -1,35 +1,56 @@
-from typing import Any, TypeVar
+from typing import TypeVar
 
-import asyncio
-from collections.abc import Coroutine
+from collections.abc import Sequence
 
-from .constants import MAX_TELEGRAM_MESSAGE_LENGTH
+from langchain_core.documents import Document
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import Runnable, RunnablePassthrough, RunnableSerializable
+from langchain_core.vectorstores import VectorStore
+from pydantic import BaseModel
 
-T = TypeVar("T")
+from src.code_reviewer.constants import TOP_N
 
-
-def run_async[T](coroutine: Coroutine[Any, Any, T]) -> T:
-    """
-    Выполняет асинхронную функцию синхронно.
-
-    :param coroutine: Асинхронная функция для запуска.
-    :return: T результат выполнения асинхронной функции.
-    """
-    event_loop = asyncio.get_event_loop()
-    return event_loop.run_until_complete(coroutine)
+T = TypeVar("T", bound=BaseModel)
 
 
-def split_text(text: str) -> list[str]:
-    """Разбивает большое сообщение на части,
-    не превышающие максимальный размер сообщения в Telegram.
+def create_chain_with_structured_output[T](
+    output_type: type[T],
+    llm: BaseChatModel,
+    prompt: str,
+) -> Runnable[dict[str, str], T]:
+    parser = PydanticOutputParser(pydantic_object=output_type)
+    prompt = ChatPromptTemplate.from_messages([("system", prompt)]).partial(
+        format_instructions=parser.get_format_instructions(),
+    )
+    return prompt | llm | parser
 
-    :param text: Исходный текст сообщения
-    :return: Список частей текста, каждая не длиннее MAX_TELEGRAM_MESSAGE_LENGTH
-    """
-    chunks: list[str] = []
-    start = 0
-    while start < len(text):
-        end = start + MAX_TELEGRAM_MESSAGE_LENGTH
-        chunks.append(text[start:end])
-        start = end
-    return chunks
+
+def create_chain(prompt: str, llm: BaseChatModel) -> Runnable[dict[str, str], BaseMessage]:
+    return ChatPromptTemplate.from_template(prompt) | llm
+
+
+def create_rag_chain(
+    vectorstore: VectorStore, prompt: str, llm: BaseChatModel
+) -> RunnableSerializable[str, BaseMessage]:
+    return (
+        {
+            "context": vectorstore.as_retriever(k=TOP_N) | format_documents,
+            "query": RunnablePassthrough(),
+        }
+        | ChatPromptTemplate.from_template(prompt)
+        | llm
+    )
+
+
+def format_documents(documents: list[Document]) -> str:
+    return "\n\n".join([document.page_content for document in documents])
+
+
+def format_messages(messages: Sequence[BaseMessage]) -> str:
+    return "\n\n".join(
+        f"{'User' if isinstance(message, HumanMessage) else 'AI'}: {message.content}"
+        for message in messages
+    )

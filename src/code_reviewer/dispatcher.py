@@ -2,8 +2,8 @@ from aiogram import Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from dishka.integrations.aiogram import setup_dishka
 
-from ..dependencies import container
-from .handlers import router
+from src.code_reviewer.dependencies import container
+from src.code_reviewer.handlers import router
 
 
 def create_dispatcher() -> Dispatcher:

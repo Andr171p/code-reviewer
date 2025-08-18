@@ -20,3 +20,4 @@ redis~=6.2.0
 sentence-transformers~=5.0.0
 pydantic-settings~=2.10.1
 pytz~=2025.2
+aiogram~=3.21.0
