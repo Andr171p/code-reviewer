@@ -12,3 +12,5 @@ sentence-transformers~=5.0.0
 pydantic-settings~=2.10.1
 pytz~=2025.2
 aiogram~=3.21.0
+pydantic-ai~=0.7.2
+pydantic-graph~=0.7.2
