@@ -12,7 +12,6 @@ from langchain_core.vectorstores import VectorStore
 from pydantic import BaseModel, Field
 from pydantic_graph import BaseNode, End, Graph, GraphRunContext
 
-from scripts.its import query
 from .prompts import (
     DOCS_ASSISTANT_PROMPT,
     CODE_REVIEW_PROMPT,
