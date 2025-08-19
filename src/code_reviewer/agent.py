@@ -12,6 +12,7 @@ from langchain_core.vectorstores import VectorStore
 from pydantic import BaseModel, Field
 from pydantic_graph import BaseNode, End, Graph, GraphRunContext
 
+from scripts.its import query
 from .prompts import (
     DOCS_ASSISTANT_PROMPT,
     CODE_REVIEW_PROMPT,
@@ -177,7 +178,7 @@ class WritingCodeNode(BaseNode[State, Dependencies]):
         documents = await ctx.deps.vectorstore_factory("1c-code").asimilarity_search(
             query=hypothetical_message.content, k=TOP_N
         )
-        prompt = DEVELOPER_PROMPT.format(context=format_documents(documents))
+        prompt = DEVELOPER_PROMPT.format(context=format_documents(documents), query=self.chat_prompt)
         developer_chain = create_chain(prompt=prompt, llm=ctx.deps.llm)
         developer_message = await developer_chain.ainvoke({"query": self.chat_prompt})
         ctx.state.messages.append(developer_message)

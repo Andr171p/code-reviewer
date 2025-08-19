@@ -4,14 +4,21 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
-    ports:
-      - "8379:6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
       start_period: 5s
+
+  bot:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - .:/code_reviewer_bot
+    depends_on:
+      redis:
+        condition: service_healthy
 
 volumes:
   redis_data:
