@@ -56,7 +56,7 @@ class SummarizationNode(BaseNode[State, Dependencies]):
     ) -> RoutingNode:
         logger.info("Summarize chat history")
         user_prompt = ctx.state.messages[-1].content
-        if len(ctx.state.messages) == 1:
+        if len(ctx.state.messages) != 1:
             chat_history = format_messages(ctx.state.messages)
             chain = create_chain(prompt=SUMMARIZATION_PROMPT, llm=ctx.deps.llm)
             ai_message = await chain.ainvoke({"chat_history": chat_history})
