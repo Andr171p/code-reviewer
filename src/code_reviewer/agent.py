@@ -18,6 +18,7 @@ from .prompts import (
     DEVELOPER_PROMPT,
     HYPOTHETICAL_CODE_GENERATION_PROMPT,
     ROUTE_PROMPT,
+    GENERAL_PROMPT,
 )
 from .utils import (
     create_chain,
@@ -50,6 +51,7 @@ class NextNode(StrEnum):
     DEVELOPER = "developer"
     CODE_REVIEW = "code_review"
     ASSISTANT = "assistant"
+    GENERAL = "general"
 
 
 class Routing(BaseModel):
@@ -62,25 +64,32 @@ class Routing(BaseModel):
 class RoutingNode(BaseNode[State, Dependencies]):
     async def run(
             self, ctx: GraphRunContext[State, Dependencies]
-    ) -> WritingCodeNode | CodeReviewNode | AskAssistantNode:
+    ) -> WritingCodeNode | CodeReviewNode | AskAssistantNode | End:
         chain = create_chain_with_structured_output(
             output_type=Routing,
             prompt=ROUTE_PROMPT,
             llm=ctx.deps.llm,
         )
-        user_prompt = format_messages(ctx.state.messages)
-        routing = await chain.ainvoke({"query": user_prompt})
+        chat_prompt = format_messages(ctx.state.messages)
+        user_prompt = ctx.state.messages[-1].content
+        routing = await chain.ainvoke({"query": chat_prompt})
         logger.info("Route to %s", routing.next_node)
         if routing.next_node == NextNode.DEVELOPER:
             return WritingCodeNode(user_prompt)
-        if routing.next_node == NextNode.CODE_REVIEW:
+        elif routing.next_node == NextNode.CODE_REVIEW:
             return CodeReviewNode(user_prompt)
-        return AskAssistantNode(user_prompt)
+        elif routing.next_node == NextNode.ASSISTANT:
+            return AskAssistantNode(chat_prompt)
+        else:
+            chain = create_chain(prompt=GENERAL_PROMPT, llm=ctx.deps.llm)
+            ai_message = await chain.ainvoke({"query": chat_prompt})
+            ctx.state.messages.append(ai_message)
+            return End(None)
 
 
 @dataclass
 class AskAssistantNode(BaseNode[State, Dependencies]):
-    user_prompt: str
+    chat_prompt: str
 
     async def run(
             self, ctx: GraphRunContext[State, Dependencies]
@@ -91,7 +100,7 @@ class AskAssistantNode(BaseNode[State, Dependencies]):
             prompt=ASSISTANT_PROMPT,
             llm=ctx.deps.llm,
         )
-        ai_message = await assistant_chain.ainvoke(self.user_prompt)
+        ai_message = await assistant_chain.ainvoke(self.chat_prompt)
         ctx.state.messages.append(ai_message)
         return End(None)
 
@@ -146,9 +155,7 @@ async def run_agent(chat_id: str, user_prompt: str) -> str:
     chat_history = await container.get(RedisChatHistory)
     messages = await chat_history.get_messages(chat_id)
     messages.append(HumanMessage(content=user_prompt))
-    print(f"Redis messages: {messages}")
     state = State(messages=messages)
-    print(state)
     deps = Dependencies(vectorstore_factory=vectorstore_factory, llm=llm)
     graph = Graph(nodes=(RoutingNode, CodeReviewNode, WritingCodeNode, AskAssistantNode))
     result = await graph.run(RoutingNode(), state=state, deps=deps)
