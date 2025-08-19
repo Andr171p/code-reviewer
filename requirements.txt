@@ -7,6 +7,7 @@ python-dotenv~=1.1.1
 SQLAlchemy~=2.0.41
 pymupdf4llm~=0.0.27
 langchain-community~=0.3.27
+langchain-gigachat~=0.3.11
 redis~=6.2.0
 sentence-transformers~=5.0.0
 pydantic-settings~=2.10.1
